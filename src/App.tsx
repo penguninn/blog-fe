@@ -3,19 +3,33 @@ import Font from "./components/font";
 import Home from "./pages/Home";
 import DefaultLayout from "./layout/DefaultLayout";
 import AdminLayout from "./layout/AdminLayout";
-import { DashPost, PostDetails, DashCategory, EditorCategory, EditorPost, DashTag, EditorTag } from "./pages";
+import { DashPost, PostDetails, DashCategory, EditorCategory, EditorPost, DashTag, EditorTag, ListPost } from "./pages";
 import { Toaster } from "@/components/ui/sonner"
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Signin from "./pages/Signin";
 
 function App() {
   return (
-    <div className="w-full transition-colors duration-100">
-      <Font />
+    <AuthProvider>
+      <div className="w-full transition-colors duration-100">
+        <Font />
         <Routes>
           <Route element={<DefaultLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/posts/:slug" element={<PostDetails />} />
+            <Route path="/posts" element={<ListPost />} />
+            <Route path="/posts/top-posts" element={<ListPost />} />
+            <Route path="/posts/new-posts" element={<ListPost />} />
+            <Route path="/category/:id" element={<ListPost />} />
+            <Route path="/tag/:id" element={<ListPost />} />
           </Route>
-          <Route element={<AdminLayout />}>
+          <Route path="/login" element={<Signin />} />
+          <Route element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
             <Route path="/admin" element={<DashPost />} />
             <Route path="/admin/posts" element={<DashPost />} />
             <Route path="/admin/posts/create" element={<EditorPost />} />
@@ -28,9 +42,9 @@ function App() {
             <Route path="/admin/tags/:id/edit" element={<EditorTag />} />
           </Route>
         </Routes>
-        <Toaster 
-          theme="light"  
-          richColors 
+        <Toaster
+          theme="light"
+          richColors
           duration={2000}
           toastOptions={{
             classNames: {
@@ -41,7 +55,8 @@ function App() {
             },
           }}
         />
-    </div>
+      </div>
+    </AuthProvider>
   );
 }
 

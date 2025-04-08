@@ -19,7 +19,7 @@ const EditorTag: React.FC = () => {
         await axios.put(`http://localhost:8080/api/tags/${id}`, tagData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
         });
         toast.success('Tag updated successfully');
@@ -27,7 +27,7 @@ const EditorTag: React.FC = () => {
         await axios.post('http://localhost:8080/api/tags', tagData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
         });
         toast.success('Tag created successfully');

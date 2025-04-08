@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { PaginationCustom } from "@/components/pagination-custom";
 
 interface CategoryType {
   id: string;
@@ -25,24 +26,35 @@ interface PostType {
   tags: TagType[];
 }
 
-interface ApiResponse {
+interface ApiResponse<T> {
   status: number;
   message: string;
-  data  : PostType[];
+  data: {
+    page: number;
+    size: number;
+    totalPages: number;
+    totalElements: number;
+    contents: T;
+  };
 }
 
 const DashPost: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const fetchPosts = async () => {
     try {
-      const response = await axios.get<ApiResponse>('http://localhost:8080/api/posts', {
+      const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=${currentPage}&size=5&sort=createdDate,desc`, {
         headers: {
           // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
       });
 
       if (response.data) {
-        setPosts(response.data.data);
+        setPosts(response.data.data.contents);
+        setTotalPages(response.data.data.totalPages);
+        setCurrentPage(response.data.data.page + 1);
       }
     } catch (err) {
       console.error('Error when loading post list:', err);
@@ -52,11 +64,16 @@ const DashPost: React.FC = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [currentPage]);
 
   const handleDeleteSuccess = () => {
     fetchPosts();
     toast.success('Update post list successfully');
+  };
+
+  const handlePageChange = (page: number) => {
+    console.log(page);
+    setCurrentPage(page);
   };
 
   return (
@@ -91,6 +108,7 @@ const DashPost: React.FC = () => {
               onDeleteSuccess={handleDeleteSuccess}
             />
           ))}
+          <PaginationCustom totalPages={totalPages} currentPage={currentPage} onPageChange={handlePageChange} />
         </div>
       )}
     </div>

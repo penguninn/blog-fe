@@ -8,3 +8,4 @@ export { default as DashCategory } from "./DashCategory";
 export { default as EditorCategory } from "./EditorCategory";
 export { default as DashTag } from "./DashTag";
 export { default as EditorTag } from "./EditorTag";
+export { default as ListPost } from "./ListPost";

@@ -11,7 +11,7 @@ import OrderedList from '@tiptap/extension-ordered-list';
 import BulletList from '@tiptap/extension-bullet-list';
 import CodeBlock from '@tiptap/extension-code-block';
 import Image from '@tiptap/extension-image';
-import axios from 'axios';
+import axiosInstance from '@/api/axiosInstance';
 import { Select, SelectValue, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -56,7 +56,7 @@ interface ApiResponse<T> {
 
 const EditorPost: React.FC = () => {
   const [title, setTitle] = useState<string>('');
-  const [category, setCategory] = useState<CategoryType | undefined>();
+  const [category, setCategory] = useState<CategoryType>();
   const [categories, setCategories] = useState<Array<CategoryType>>([]);
   const [tagOptions, setTagOptions] = useState<Array<TagOption>>([]);
   const [selectedTags, setSelectedTags] = useState<Array<string>>([]);
@@ -115,58 +115,40 @@ const EditorPost: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await axios.get<ApiResponse<CategoryType[]>>('http://localhost:8080/api/categories');
-        setCategories(response.data.data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        toast.error('Cannot fetch categories');
-      }
-    };  
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {   
-    const fetchTags = async () => {
-      try {
-        const response = await axios.get<ApiResponse<TagType[]>>('http://localhost:8080/api/tags');
-        setTagOptions(response.data.data.map(tag => ({
+        const categoriesResponse = await axiosInstance.get<ApiResponse<CategoryType[]>>('/categories');
+        setCategories(categoriesResponse.data.data);
+        
+        const tagsResponse = await axiosInstance.get<ApiResponse<TagType[]>>('/tags');
+        const options = tagsResponse.data.data.map(tag => ({
           label: tag.name,
           value: tag.id
-        })));
-      } catch (error) {
-        console.error('Error fetching tags:', error);
-        toast.error('Cannot fetch tags');
-      }
-    };
-    fetchTags();
-  }, []);
-  
-
-  useEffect(() => {
-    if (id) {
-      const fetchPost = async () => {
-        try {
-          const response = await axios.get<ApiResponse<PostType>>(`http://localhost:8080/api/posts/i/${id}`);
-          const post = response.data.data;
+        }));
+        setTagOptions(options);
+        
+        if (id) {
+          const postResponse = await axiosInstance.get<ApiResponse<PostType>>(`/posts/i/${id}`);
+          const post = postResponse.data.data;
           
           setTitle(post.title);
           setStatus(post.status);
           setCategory(post.category);
-          setSelectedTags(post.tags.map(tag => tag.id));
+          
+          const tagIds = post.tags.map(tag => tag.id);
+          setSelectedTags(tagIds);
           
           if (post.contents && post.contents.length > 0) {
             editor?.commands.setContent(post.contents[0]);
           }
-          
-        } catch (error) {
-          console.error('Error fetching post:', error);
-          toast.error('Cannot fetch post');
         }
-      };
-      fetchPost();
-    }
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+        toast.error('Cannot load initial data');
+      }
+    };
+    
+    fetchInitialData();
   }, [id, editor]);
 
   const handleCategoryChange = (categoryId: string) => {
@@ -206,10 +188,12 @@ const EditorPost: React.FC = () => {
         slug: createSlugFromTitle(title),
         status: status,
         category: category,
-        tags: tagOptions.filter(tag => selectedTags.includes(tag.value) ).map(tag => ({
-          id: tag.value,
-          name: tag.label
-        })),
+        tags: tagOptions
+          .filter(tag => selectedTags.includes(tag.value))
+          .map(tag => ({
+            id: tag.value,
+            name: tag.label
+          })),
         contents: [
           {
             type: "doc",
@@ -219,27 +203,17 @@ const EditorPost: React.FC = () => {
       };
 
       if (id) {
-        await axios.put(`http://localhost:8080/api/posts/${id}`, postData, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-        });
+        await axiosInstance.put(`/posts/${id}`, postData);
         toast.success('Update post successfully');
       } else {
-        await axios.post('http://localhost:8080/api/posts', postData, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-        });
+        await axiosInstance.post('/posts', postData);
         toast.success('Create new post successfully');
       }
       navigate('/admin/posts');
       
     } catch (err) {
       console.error('Error details:', err);
-      toast.error('An error occurred when saving the post');
+      toast.error('Error when saving post');
     }
   };
 
@@ -264,6 +238,7 @@ const EditorPost: React.FC = () => {
           <MultiSelect
             options={tagOptions}
             onValueChange={setSelectedTags}
+            defaultValue={selectedTags}
             value={selectedTags}
             placeholder="Select tags"
             animation={2}
@@ -295,7 +270,7 @@ const EditorPost: React.FC = () => {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PUBLISHED">Publish</SelectItem>
+              <SelectItem value="PUBLISHED">Published</SelectItem>
               <SelectItem value="DRAFT">Draft</SelectItem>
             </SelectContent>
           </Select>

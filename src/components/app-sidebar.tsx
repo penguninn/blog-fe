@@ -1,4 +1,6 @@
-import { Settings, FileText, Tag, Plus, Folder } from "lucide-react"
+import { Settings, FileText, Tag, Plus, Folder, LogOut } from "lucide-react"
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Sidebar,
@@ -13,21 +15,32 @@ import {
 import { Link } from "react-router-dom";
 import Logo from "./logo";
 import { ReactNode } from "react";
+import { toast } from "sonner";
 
 interface MenuItem {
   title: string;
   icon?: ReactNode;
   path?: string;
+  action?: () => void;
   children?: SubMenuItem[];
 }
 
 interface SubMenuItem {
   title: string;
-  path: string;
   icon?: ReactNode;
+  path: string;
 }
 
 export function AppSidebar() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    logout();
+    toast.success("Logout successfully");
+    navigate("/login");
+  };
+
   const menuItems: MenuItem[] = [
     {
       title: "Posts",
@@ -57,6 +70,11 @@ export function AppSidebar() {
       title: "Settings",
       icon: <Settings className="mr-2 h-4 w-4" />,
       path: "/admin/settings"
+    },
+    {
+      title: "Logout",
+      icon: <LogOut className="mr-2 h-4 w-4" />,
+      action: handleLogout
     }
   ];
 
@@ -86,6 +104,11 @@ export function AppSidebar() {
                     ))}
                 </SidebarMenuSub>
               </>
+            ) : item.action ? (
+              <SidebarMenuButton onClick={item.action} className="flex items-center cursor-pointer">
+                {item.icon}
+                {item.title}
+              </SidebarMenuButton>
             ) : (
               <SidebarMenuButton asChild>
                 <Link to={item.path || "#"} className="flex items-center">

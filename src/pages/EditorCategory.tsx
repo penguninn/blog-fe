@@ -20,7 +20,7 @@ const CreateCategory: React.FC = () => {
         await axios.put(`http://localhost:8080/api/categories/${id}`, categoryData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
         });
         toast.success('Category updated successfully');
@@ -28,7 +28,7 @@ const CreateCategory: React.FC = () => {
         await axios.post('http://localhost:8080/api/categories', categoryData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
         });
         toast.success('Category created successfully');

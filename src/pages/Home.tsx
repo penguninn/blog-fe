@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import CardPost from "@/components/card-post";
 import axios from "axios";
-import thumb from "@/assets/thumb.jpeg";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 
 interface TagType {
   id: string;
@@ -18,18 +20,34 @@ interface PostType {
 interface ApiResponse<T> {
   status: number;
   message: string;
-  data: T;
+  data: {
+    page: number;
+    size: number;
+    totalPages: number;
+    totalElements: number;
+    contents: T;
+  };
 }
 
 const Home = () => {
-  const [posts, setPosts] = useState<PostType[]>([]);
+  const [topPosts, setTopPosts] = useState<PostType[]>([]);
+  const [newPosts, setNewPosts] = useState<PostType[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get<ApiResponse<PostType[]>>('http://localhost:8080/api/posts');
+        const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=1&size=5&sort=view,desc`);
         if (response.data && response.data.data) {
-          setPosts(response.data.data);
+          setTopPosts(response.data.data.contents);
+        }
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+      }
+      
+      try {
+        const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=1&size=5&sort=createdDate,desc`);
+        if (response.data && response.data.data) {
+          setNewPosts(response.data.data.contents);
         }
       } catch (err) {
         console.error('Error fetching posts:', err);
@@ -39,23 +57,45 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="w-full flex flex-col justify-center items-center overflow-hidden">
-      <div className="w-screen h-[300px] relative flex flex-col items-center justify-center ">
-        <img src={thumb} alt="logo" className="w-full h-full object-cover" />
-        <div className="absolute top-0 left-0 w-full h-full bg-gray-900/50 flex flex-col items-center justify-center">
+    <div className="w-full flex flex-col justify-start items-center overflow-hidden">
+      <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center px-4">
+        <div className="w-full flex justify-between items-center gap-4 px-2">
+          <Label className="w-full text-3xl font-bold mb-5 text-start">Top Posts</Label>
+          <div className="w-full">
+            <Separator className="w-full" />
+          </div>
         </div>
-      </div>
-      <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center">
-        <div className="w-full flex flex-col gap-4 px-4">
-          {posts.map((post) => (
+        <div className="w-full flex flex-col gap-4">
+          {topPosts.map((post) => (
             <CardPost
               key={post.id}
               slug={post.slug}
               title={post.title}
               description={"No description"}
-              tags={post.tags}            
+              tags={post.tags}
             />
           ))}
+          <Link to={`/posts/top-posts`} className="text-end hover:text-blue-500 hover:underline">Brower more...</Link>
+        </div>
+      </div>
+      <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center px-4">
+        <div className="w-full flex justify-between items-center gap-4 px-2">
+          <Label className="w-full text-3xl font-bold mb-5 text-start">New Posts</Label>
+          <div className="w-full">
+            <Separator className="w-full" />
+          </div>
+        </div>
+        <div className="w-full flex flex-col gap-4">
+          {newPosts.map((post) => (
+            <CardPost
+              key={post.id}
+              slug={post.slug}
+              title={post.title}
+              description={"No description"}
+              tags={post.tags}
+            />
+          ))}
+          <Link to={`/posts/new-posts`} className="text-end hover:text-blue-500 hover:underline">Brower more...</Link>
         </div>
       </div>
     </div>
