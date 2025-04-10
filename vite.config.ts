@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
+      allowedHosts: ['all'],
     },
     // build: {
     //   sourcemap: !isProduction,
