@@ -22,12 +22,12 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      allowedHosts: ['pengunin-blog.onrender.com', 'localhost', 'all'],
+      allowedHosts: ['pengunin-blog.onrender.com', 'blog.penguninn.com'],
       cors: true,
     },
     preview: {
       host: true,
-      allowedHosts: ['pengunin-blog.onrender.com', 'localhost', 'all'],
+      allowedHosts: ['pengunin-blog.onrender.com', 'blog.penguninn.com'],
       cors: true,
     },
     // build: {
