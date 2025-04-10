@@ -1,8 +1,8 @@
-import Navbar from "@/components/navbar";
+import Navbar from "../components/navbar";
 import { Outlet } from "react-router-dom";
-import Footer from "@/components/footer";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import Footer from "../components/footer";
+import { AppSidebar } from "../components/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
 
 const AdminLayout = () => {
   return (

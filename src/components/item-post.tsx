@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Ellipsis } from 'lucide-react';
-import axios from "axios";
+import axiosInstance from "@/api/axiosInstance";
 import { toast } from "sonner";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
@@ -22,18 +22,14 @@ interface ItemPostProps {
   onDeleteSuccess?: () => void;
 }
 
-const ItemPost = ({ id, slug, title, status, category, tags, onDeleteSuccess }: ItemPostProps) => {
+const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = () => {
     setIsDeleting(true);
 
-    axios.delete(`http://localhost:8080/api/posts/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
+    axiosInstance.delete(`/posts/${id}`)
       .then(() => {
         toast.success('Delete post successfully');
         if (onDeleteSuccess) {

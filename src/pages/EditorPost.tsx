@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
 import Heading from '@tiptap/extension-heading';
 import { MultiSelect } from '@/components/multi-select';
+import { useTitle } from '@/hooks';
 
 interface CategoryType {
   id: string;
@@ -64,6 +65,9 @@ const EditorPost: React.FC = () => {
   
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // Set page title
+  useTitle(id ? 'Edit post' : 'Create new post');
 
   const editor = useEditor({
     extensions: [
@@ -219,9 +223,6 @@ const EditorPost: React.FC = () => {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-4">
-        {id ? 'Edit post' : 'Create new post'}
-      </h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <Input

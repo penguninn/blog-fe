@@ -1,54 +1,86 @@
-# React + TypeScript + Vite
+# Pengunin Blog Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A blog application built with React, TypeScript, and Vite, optimized for production environments.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- View list of posts
+- View post details
+- Categorize by categories and tags
+- Admin interface for managing posts, categories, and tags
+- Support for multiple themes (light/dark)
+- Visual editor for writing posts
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+my-react-app/
+├── .github/                   # CI/CD workflows and GitHub configuration
+├── public/                    # Static files
+├── src/
+│   ├── assets/                # Static resources (images, fonts, etc.)
+│   ├── components/            # Reusable components
+│   ├── contexts/              # React contexts
+│   ├── hooks/                 # Custom hooks
+│   ├── layouts/               # Layout components
+│   ├── lib/                   # Libraries and utilities
+│   ├── pages/                 # Page components
+│   ├── services/              # API calls, services
+│   ├── store/                 # State management
+│   ├── types/                 # TypeScript interfaces, types
+│   ├── utils/                 # Helper functions
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Requirements
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+- Node.js (>= v20.x)
+- npm (>= v10.x)
+
+### Installation
+
+```bash
+# Clone repository
+git clone <repository-url>
+
+# Navigate to project directory
+cd blog-fe
+
+# Install dependencies
+npm install
 ```
+
+### Running the Project
+
+```bash
+# Run development environment
+npm run dev
+
+# Build for production
+npm run build:prod
+
+# Run tests
+npm test
+
+# Check linting
+npm run lint
+```
+
+## Environment
+
+The project uses environment variables for configuration:
+
+- `.env` - Development environment
+- `.env.production` - Production environment
+
+## Deployment
+
+The project uses GitHub Actions for CI/CD pipeline. Each push to the `main` branch will automatically test, build, and deploy the code.
+
+## Optimizations
+
+- Code splitting and lazy loading
+- Bundle size optimization
+- Separating large dependencies into separate chunks
+- Automatic minification in production environment

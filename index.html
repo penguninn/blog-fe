@@ -2,12 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/assets/pegunin.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Pengunin Blog - Knowledge and experience sharing" />
+    <meta name="keywords" content="blog, development, pengunin" />
+    <meta name="author" content="Pengunin Team" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta property="og:title" content="Pengunin Blog" />
+    <meta property="og:description" content="Knowledge and experience sharing" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pengunin.com" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://api.pengunin.com" crossorigin />
+    
+    <link rel="manifest" href="/manifest.json" />
     <title>Pengunin</title>
+    
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- No-JS Fallback -->
+    <noscript>
+      <div style="padding: 2rem; text-align: center;">
+        <h1>JavaScript is required</h1>
+        <p>This website requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+      </div>
+    </noscript>
   </body>
 </html>

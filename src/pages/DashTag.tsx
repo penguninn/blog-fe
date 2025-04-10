@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "@/api/axiosInstance";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus, Trash } from "lucide-react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useTitle } from "@/hooks";
 
 const DashTag: React.FC = () => {
 
@@ -23,14 +24,13 @@ const DashTag: React.FC = () => {
   const [tags, setTags] = useState<TagType[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<TagType>();
+  
+  // Set page title
+  useTitle("Manage tags");
 
   const fetchTags = async () => {
     try {
-      const response = await axios.get<ApiResponse>('http://localhost:8080/api/tags', {
-        headers: {
-          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      const response = await axiosInstance.get<ApiResponse>('/tags');
       if (response.data) {
         setTags(response.data.data);
       }
@@ -45,11 +45,7 @@ const DashTag: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8080/api/tags/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      await axiosInstance.delete(`/tags/${id}`);
       toast.success('Tag deleted successfully');
       fetchTags();
       toast.success('Update tag list successfully');
@@ -61,7 +57,6 @@ const DashTag: React.FC = () => {
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-bold">Tag List</h1>
       <div className="flex justify-end mb-4">
         <Button asChild>
           <Link to="/admin/tags/create" className="flex items-center gap-1">

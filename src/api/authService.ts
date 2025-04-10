@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 
 // API login
 export const login = async (username: string, password: string): Promise<{ user: User; tokens: AuthTokens }> => {
-  const response = await axiosInstance.post<AuthResponse>('http://localhost:8080/api/auth/login', { username, password });
+  const response = await axiosInstance.post<AuthResponse>('/auth/login', { username, password });
   
   if (response.data.status === 200) {
     const tokens = response.data.data;
@@ -15,7 +15,7 @@ export const login = async (username: string, password: string): Promise<{ user:
   throw new Error(response.data.message || 'Login failed');
 };
 
-// API logout (nếu cần)
+// API logout (if needed)
 export const logout = async (): Promise<void> => {
   try {
     await axiosInstance.post('/auth/logout');
@@ -24,16 +24,22 @@ export const logout = async (): Promise<void> => {
   }
 };
 
-// API refresh token (backup nếu interceptor không hoạt động)
+// API refresh token (backup if interceptor doesn't work)
 export const refreshToken = async (refreshToken: string): Promise<AuthTokens> => {
   const response = await axiosInstance.post<{ data: AuthTokens }>('/auth/refresh-token', { refreshToken });
   return response.data.data;
 };
 
-// Giải mã token JWT để lấy thông tin user
+// Decode JWT token to get user information
 export const extractUserFromToken = (token: string): User => {
   try {
-    const decoded: any = jwtDecode(token);
+    interface DecodedToken {
+      sub: string;
+      roles?: string[];
+      [key: string]: unknown;
+    }
+    
+    const decoded = jwtDecode<DecodedToken>(token);
     return {
       username: decoded.sub,
       roles: decoded.roles || [],

@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import axiosInstance from "@/api/axiosInstance";
 import { Table, TableCaption, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Edit, Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { useTitle } from "@/hooks";
+
 const DashCategory: React.FC = () => {
 
   interface CategoryType {
@@ -22,14 +24,13 @@ const DashCategory: React.FC = () => {
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryType>();
+  
+  // Set page title
+  useTitle("Manage categories");
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get<ApiResponse>('http://localhost:8080/api/categories', {
-        headers: {
-          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      const response = await axiosInstance.get<ApiResponse>('/categories');
       if (response.data) {
         setCategories(response.data.data);
       }
@@ -44,11 +45,7 @@ const DashCategory: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8080/api/categories/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      await axiosInstance.delete(`/categories/${id}`);
       toast.success('Category deleted successfully');
       fetchCategories();
       toast.success('Update category list successfully');

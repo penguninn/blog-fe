@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useLocation, useParams } from "react-router-dom";
 import { PaginationCustom } from "@/components/pagination-custom";
+import { useTitle } from "@/hooks";
 
 interface TagType {
   id: string;
@@ -38,6 +39,9 @@ const ListPost = () => {
   
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
+  
+  // Set page title
+  useTitle(title);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -72,7 +76,7 @@ const ListPost = () => {
           }
         }
 
-        const response = await axiosInstance.get<ApiResponse<PostType[]>>(`http://localhost:8080/api${endpoint}`);
+        const response = await axiosInstance.get<ApiResponse<PostType[]>>(endpoint);
         if (response.data && response.data.data) {
           setPosts(response.data.data.contents);
           setTotalPages(response.data.data.totalPages);

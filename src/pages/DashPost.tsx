@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import ItemPost from "@/components/item-post";
-import axios from "axios";
+import axiosInstance from "@/api/axiosInstance";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { PaginationCustom } from "@/components/pagination-custom";
+import { useTitle } from "@/hooks";
 
 interface CategoryType {
   id: string;
@@ -42,14 +43,13 @@ const DashPost: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Thiết lập tiêu đề trang
+  useTitle("Quản lý bài viết");
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=${currentPage}&size=5&sort=createdDate,desc`, {
-        headers: {
-          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      const response = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=${currentPage}&size=5&sort=createdDate,desc`);
 
       if (response.data) {
         setPosts(response.data.data.contents);

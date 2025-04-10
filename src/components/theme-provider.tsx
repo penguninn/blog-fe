@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 
 type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 };
@@ -20,19 +20,35 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// Helper function to get theme from local storage or use default value
+const getStoredTheme = (storageKey: string, defaultTheme: Theme): Theme => {
+  // Only execute in client environment
+  if (typeof window === 'undefined') return defaultTheme;
+  
+  const storedTheme = localStorage.getItem(storageKey) as Theme;
+  return storedTheme || defaultTheme;
+};
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  // Use lazy initialization for state
+  const [theme, setThemeState] = useState<Theme>(() => 
+    getStoredTheme(storageKey, defaultTheme)
   );
 
+  // Use useCallback to avoid recreating function on re-render
+  const setTheme = useCallback((theme: Theme) => {
+    localStorage.setItem(storageKey, theme);
+    setThemeState(theme);
+  }, [storageKey]);
+
+  // Update class on document element when theme changes
   useEffect(() => {
     const root = window.document.documentElement;
-
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
@@ -48,13 +64,23 @@ export function ThemeProvider({
     root.classList.add(theme);
   }, [theme]);
 
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
-    },
-  };
+  // Watch for system changes if theme is set to "system"
+  useEffect(() => {
+    if (theme !== "system") return;
+    
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      const root = window.document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(mediaQuery.matches ? "dark" : "light");
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [theme]);
+
+  // Use useMemo to avoid recreating value on re-render
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>

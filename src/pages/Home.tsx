@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import CardPost from "@/components/card-post";
-import axios from "axios";
+import axiosInstance from "@/api/axiosInstance";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
+import { useTitle } from "@/hooks";
 
 interface TagType {
   id: string;
@@ -32,11 +33,13 @@ interface ApiResponse<T> {
 const Home = () => {
   const [topPosts, setTopPosts] = useState<PostType[]>([]);
   const [newPosts, setNewPosts] = useState<PostType[]>([]);
+  
+  useTitle("Home");
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=1&size=5&sort=view,desc`);
+        const response = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=1&size=5&sort=view,desc`);
         if (response.data && response.data.data) {
           setTopPosts(response.data.data.contents);
         }
@@ -45,7 +48,7 @@ const Home = () => {
       }
       
       try {
-        const response = await axios.get<ApiResponse<PostType[]>>(`http://localhost:8080/api/posts?page=1&size=5&sort=createdDate,desc`);
+        const response = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=1&size=5&sort=createdDate,desc`);
         if (response.data && response.data.data) {
           setNewPosts(response.data.data.contents);
         }
@@ -75,7 +78,7 @@ const Home = () => {
               tags={post.tags}
             />
           ))}
-          <Link to={`/posts/top-posts`} className="text-end hover:text-blue-500 hover:underline">Brower more...</Link>
+          <Link to={`/posts/top-posts`} className="text-end hover:text-blue-500 hover:underline">Browse more...</Link>
         </div>
       </div>
       <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center px-4">
@@ -95,7 +98,7 @@ const Home = () => {
               tags={post.tags}
             />
           ))}
-          <Link to={`/posts/new-posts`} className="text-end hover:text-blue-500 hover:underline">Brower more...</Link>
+          <Link to={`/posts/new-posts`} className="text-end hover:text-blue-500 hover:underline">Browse more...</Link>
         </div>
       </div>
     </div>

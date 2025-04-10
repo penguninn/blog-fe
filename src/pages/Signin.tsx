@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ModeToggle } from "@/components/mode-toggle";
 import { login as loginApi } from "@/api/authService";
+import { useTitle } from "@/hooks";
 
 const Signin = () => {
   const [username, setUsername] = useState("");
@@ -17,6 +18,9 @@ const Signin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/admin";
+  
+  // Set page title
+  useTitle("Sign in");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +29,10 @@ const Signin = () => {
     try {
       const { tokens } = await loginApi(username, password);
       login(tokens);      
-      toast.success("Đăng nhập thành công");
+      toast.success("Login successful");
       navigate(from, { replace: true });
     } catch (error) {
-      let errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
+      let errorMessage = "Invalid username or password";
       
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -46,9 +50,9 @@ const Signin = () => {
       <Card className="w-[350px]">
         <CardHeader className="flex justify-between">
           <div className="flex flex-col gap-2">
-          <CardTitle>Đăng nhập</CardTitle>
+          <CardTitle>Sign In</CardTitle>
           <CardDescription>
-            Đăng nhập vào hệ thống
+            Log in to the system
           </CardDescription>
           </div>
           <ModeToggle />
@@ -57,11 +61,11 @@ const Signin = () => {
           <CardContent>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="username">Tên đăng nhập</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -69,11 +73,11 @@ const Signin = () => {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Mật khẩu</Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Nhập mật khẩu"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -84,7 +88,7 @@ const Signin = () => {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button type="submit" className="w-full mt-3" disabled={isLoading}>
-              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </CardFooter>
         </form>

@@ -5,13 +5,15 @@ import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
-import axios from 'axios';
+import axiosInstance from '@/api/axiosInstance';
 import { OrderedList } from '@tiptap/extension-ordered-list';
 import { BulletList } from '@tiptap/extension-bullet-list';
 import Blockquote from '@tiptap/extension-blockquote';
 import CodeBlock from '@tiptap/extension-code-block';
 import { Label } from '@/components/ui/label';
 import Heading from '@tiptap/extension-heading';
+import { useTitle } from '@/hooks';
+
 type TextAlign = 'left' | 'center' | 'right' | 'justify' | null;
 
 interface CategoryType {
@@ -52,11 +54,14 @@ const PostDetails: React.FC = () => {
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const { slug } = useParams<{ slug: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Set page title
+  useTitle(post?.title || 'Loading...');
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get<ApiResponse>(`http://localhost:8080/api/posts/s/${slug}`);
+        const response = await axiosInstance.get<ApiResponse>(`/posts/s/${slug}`);
         setPost(response.data.data);
       } catch (error) {
         console.error("Error fetching post:", error);
