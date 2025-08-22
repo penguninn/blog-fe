@@ -55,7 +55,6 @@ const PostDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Set page title
   useTitle(post?.title || 'Loading...');
 
   useEffect(() => {

@@ -17,33 +17,40 @@ interface ItemPostProps {
   title: string;
   slug: string;
   status: string;
-  category: string;
   tags: TagType[];
   onDeleteSuccess?: () => void;
+}
+
+interface ApiResponse<T> {
+  status: number;
+  message: string;
+  data: T;
 }
 
 const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setIsDeleting(true);
 
-    axiosInstance.delete(`/posts/${id}`)
-      .then(() => {
+    try {
+      const response = await axiosInstance.delete<ApiResponse<void>>(`/posts/${id}`);
+      if (response.status === 200) {
         toast.success('Delete post successfully');
         if (onDeleteSuccess) {
           onDeleteSuccess();
         }
-      })
-      .catch((error) => {
-        console.error('Error details:', error);
-        toast.error('Cannot delete post: ' + (error.response?.data?.message || 'An error occurred'));
-      })
-      .finally(() => {
-        setIsDeleting(false);
-        setIsDeleteDialogOpen(false);
-      });
+      } else {
+        toast.error('Cannot delete post');
+      }
+    } catch (error) {
+      console.error('Error details:', error);
+      toast.error('Cannot delete post');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
   }
 
   return (

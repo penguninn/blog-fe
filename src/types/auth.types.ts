@@ -5,7 +5,7 @@ export interface AuthTokens {
 
 export interface User {
   username: string;
-  [key: string]: any; 
+  [key: string]: unknown; 
 }
 
 export interface AuthState {

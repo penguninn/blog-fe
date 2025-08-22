@@ -12,7 +12,7 @@ const Logo = ({ showLabel = true }: { showLabel?: boolean }) => {
             className="cursor-pointer font-bold text-md"
             style={{ fontFamily: `"M PLUS Rounded 1c", sans-serif` }}
           >
-            Pengunin
+            Pencraft
           </Label>
         )}
       </div>

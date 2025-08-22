@@ -8,27 +8,28 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useTitle } from "@/hooks";
 
+interface CategoryType {
+  id: string;
+  name: string;
+}
+
+interface ApiResponse {
+  status: number;
+  message: string;
+  data: CategoryType[];
+}
+
 const DashCategory: React.FC = () => {
-
-  interface CategoryType {
-    id: string;
-    name: string;
-  }
-
-  interface ApiResponse {
-    status: number;
-    message: string;
-    data: CategoryType[];
-  }
-
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<CategoryType>();
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryType | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   
   // Set page title
   useTitle("Manage categories");
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const response = await axiosInstance.get<ApiResponse>('/categories');
       if (response.data) {
@@ -36,22 +37,28 @@ const DashCategory: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCategories();
-    }, []);
+  }, []);
 
   const handleDelete = async (id: string) => {
     try {
+      setLoading(true);
       await axiosInstance.delete(`/categories/${id}`);
       toast.success('Category deleted successfully');
-      fetchCategories();
-      toast.success('Update category list successfully');
+      await fetchCategories();
     } catch (err) {
       console.error('Error deleting category:', err);
       toast.error('Error deleting category');
+    } finally {
+      setLoading(false);
+      setIsDeleteDialogOpen(false);
     }
   }
 
@@ -66,9 +73,13 @@ const DashCategory: React.FC = () => {
         </Button>
       </div>
 
-      {categories.length === 0 ? (
+      {loading ? (
         <div className="text-center p-8 border border-dashed rounded-md">
-          <p className="text-gray-500 mb-4">No category yet</p>
+          <p className="text-gray-500">Loading categories...</p>
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="text-center p-8 border border-dashed rounded-md">
+          <p className="text-gray-500 mb-4">No categories yet</p>
           <Button asChild>
             <Link to="/admin/categories/create">Create new category</Link>
           </Button>
@@ -93,10 +104,15 @@ const DashCategory: React.FC = () => {
                         <Edit className="w-4 h-4" />
                       </Button>
                     </Link>
-                    <Button variant="outline" size="icon" onClick={() => {
-                      setCategoryToDelete(category);
-                      setIsDeleteDialogOpen(true);
-                    }}>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      disabled={loading}
+                      onClick={() => {
+                        setCategoryToDelete(category);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
                       <Trash className="w-4 h-4" />
                     </Button>
                   </TableCell>
@@ -106,6 +122,7 @@ const DashCategory: React.FC = () => {
           </Table>
         </div>
       )}
+      
       {categoryToDelete && (
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent>
@@ -113,17 +130,19 @@ const DashCategory: React.FC = () => {
               <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. The category "{categoryToDelete.name}" will be permanently deleted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleDelete(categoryToDelete.id)}
-              className="bg-red-500 hover:bg-red-600 text-white">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(categoryToDelete.id)}
+                disabled={loading}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
       )}
     </div>

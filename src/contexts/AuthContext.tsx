@@ -2,6 +2,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { AuthTokens, User, AuthState } from '@/types/auth.types';
 import { getAccessToken, getRefreshToken, getUser, removeTokens, saveTokens, saveUser } from '@/utils/tokenStorage';
 import { extractUserFromToken, logout as apiLogout } from '@/api/authService';
+import { startTokenLifecycle, stopTokenLifecycle } from '@/utils/tokenLifecycle';
 
 interface AuthContextType extends AuthState {
   login: (authResponse: { accessToken: string; refreshToken: string }) => void;
@@ -17,8 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
-  // Khôi phục phiên đăng nhập từ localStorage
   useEffect(() => {
+    // Load user session from localStorage
     const loadUserSession = () => {
       try {
         const storedToken = getAccessToken();
@@ -26,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const storedUser = getUser();
         
         if (storedToken && storedRefreshToken && storedUser) {
-          // Kiểm tra thời hạn token
+          // Check token expiration
           try {
             const tokenPayload = JSON.parse(atob(storedToken.split('.')[1]));
             const currentTime = Math.floor(Date.now() / 1000);
@@ -36,12 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setRefreshToken(storedRefreshToken);
               setUser(storedUser);
               setIsAuthenticated(true);
+              
+              // Bắt đầu kiểm tra vòng đời token
+              startTokenLifecycle();
             } else {
-              // Token đã hết hạn, sẽ được refresh tự động bởi Axios Interceptor khi gọi API
+              // Token expired, will be refreshed automatically by Axios Interceptor when calling API
               setUser(storedUser);
               setAccessToken(storedToken);
               setRefreshToken(storedRefreshToken);
               setIsAuthenticated(true);
+              
+              // Bắt đầu kiểm tra vòng đời token ngay lập tức
+              startTokenLifecycle();
             }
           } catch (error) {
             console.error('Error parsing token:', error);
@@ -57,6 +64,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadUserSession();
+    
+    // Cleanup function để dừng kiểm tra khi unmount
+    return () => {
+      stopTokenLifecycle();
+    };
   }, []);
 
   const login = (authResponse: AuthTokens) => {
@@ -64,14 +76,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(authResponse.accessToken);
       setRefreshToken(authResponse.refreshToken);
       
-      // Giải mã token để lấy thông tin user
+      // Decode token to get user information
       const userData = extractUserFromToken(authResponse.accessToken);
       setUser(userData);
       setIsAuthenticated(true);
       
-      // Lưu tokens và user vào localStorage
+      // Save tokens and user to localStorage
       saveTokens(authResponse);
       saveUser(userData);
+      
+      // Bắt đầu kiểm tra vòng đời token
+      startTokenLifecycle();
     } catch (error) {
       console.error('Error during login:', error);
     }
@@ -79,14 +94,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Gọi API logout (nếu cần)
+      // Call logout API (if needed)
       if (isAuthenticated) {
         await apiLogout();
       }
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      // Luôn xóa dữ liệu bất kể API thành công hay thất bại
+      // Dừng kiểm tra token khi đăng xuất
+      stopTokenLifecycle();
+      
+      // Always delete data whether API succeeds or fails
       setIsAuthenticated(false);
       setUser(null);
       setAccessToken(null);
@@ -105,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   if (!isInitialized) {
-    // Có thể hiển thị loading nếu cần
+      // Can display loading if needed
     return null;
   }
 

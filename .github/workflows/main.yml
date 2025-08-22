@@ -49,11 +49,3 @@ jobs:
         name: build
         path: dist
         
-    # Add your deployment steps here
-    # Example (replace with your actual deployment):
-    # - name: Deploy to production
-    #   uses: some-deployment-action@v1
-    #   with:
-    #     api-key: ${{ secrets.DEPLOY_API_KEY }}
-    #     app-name: blog-fe
-    #     dist-dir: dist 

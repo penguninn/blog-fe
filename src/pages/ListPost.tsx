@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { useLocation, useParams } from "react-router-dom";
 import { PaginationCustom } from "@/components/pagination-custom";
 import { useTitle } from "@/hooks";
+import { toast } from "sonner";
 
 interface TagType {
   id: string;
@@ -36,15 +37,16 @@ const ListPost = () => {
   const [title, setTitle] = useState<string>("All posts");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
   
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
   
-  // Set page title
   useTitle(title);
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setLoading(true);
       try {
         let endpoint = `/posts?page=${currentPage}&size=10`;
         
@@ -84,6 +86,9 @@ const ListPost = () => {
         }
       } catch (err) {
         console.error('Error fetching posts:', err);
+        toast.error('Failed to load posts');
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -91,7 +96,6 @@ const ListPost = () => {
   }, [location.pathname, id, currentPage]);
 
   const handlePageChange = (page: number) => {
-    console.log(page);
     setCurrentPage(page);
   };
 
@@ -104,8 +108,10 @@ const ListPost = () => {
             <Separator className="w-full" />
           </div>
         </div>
-        {posts.length === 0 ? (
-          <div className="w-full py-8 text-center">No posts</div>
+        {loading ? (
+          <div className="w-full py-8 text-center">Loading posts...</div>
+        ) : posts.length === 0 ? (
+          <div className="w-full py-8 text-center">No posts found</div>
         ) : (
           <div className="w-full flex flex-col gap-4">
             {posts.map((post) => (

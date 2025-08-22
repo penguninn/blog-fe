@@ -1,6 +1,8 @@
 import axiosInstance from './axiosInstance';
 import { AuthResponse, AuthTokens, User } from '../types/auth.types';
 import { jwtDecode } from 'jwt-decode';
+import { startTokenLifecycle, stopTokenLifecycle } from '../utils/tokenLifecycle';
+import { removeTokens } from '../utils/tokenStorage';
 
 // API login
 export const login = async (username: string, password: string): Promise<{ user: User; tokens: AuthTokens }> => {
@@ -9,6 +11,10 @@ export const login = async (username: string, password: string): Promise<{ user:
   if (response.data.status === 200) {
     const tokens = response.data.data;
     const user = extractUserFromToken(tokens.accessToken);
+    
+    // Bắt đầu quản lý vòng đời token sau khi đăng nhập thành công
+    startTokenLifecycle();
+    
     return { user, tokens };
   }
   
@@ -21,13 +27,11 @@ export const logout = async (): Promise<void> => {
     await axiosInstance.post('/auth/logout');
   } catch (error) {
     console.error('Logout failed:', error);
+  } finally {
+    // Dừng quản lý vòng đời token khi đăng xuất
+    stopTokenLifecycle();
+    removeTokens();
   }
-};
-
-// API refresh token (backup if interceptor doesn't work)
-export const refreshToken = async (refreshToken: string): Promise<AuthTokens> => {
-  const response = await axiosInstance.post<{ data: AuthTokens }>('/auth/refresh-token', { refreshToken });
-  return response.data.data;
 };
 
 // Decode JWT token to get user information
@@ -48,5 +52,13 @@ export const extractUserFromToken = (token: string): User => {
   } catch (error) {
     console.error('Error decoding token:', error);
     throw new Error('Invalid token');
+  }
+};
+
+// Kiểm tra và khởi động quản lý vòng đời token nếu người dùng đã đăng nhập
+export const initializeAuth = (): void => {
+  // Nếu có accessToken, bắt đầu kiểm tra vòng đời
+  if (localStorage.getItem('accessToken')) {
+    startTokenLifecycle();
   }
 }; 

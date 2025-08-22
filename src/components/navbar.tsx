@@ -14,22 +14,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 interface CategoryType {
   id: string;
   name: string;
 }
 
-interface ApiResponseCategory<T> {
-  status: number;
-  message: string;
-  data: T;
+interface TagType {
+  id: string;
+  name: string;
 }
 
 interface PostType {
@@ -39,9 +38,10 @@ interface PostType {
   tags: TagType[];
 }
 
-interface TagType {
-  id: string;
-  name: string;
+interface ApiResponse<T> {
+  status: number;
+  message: string;
+  data: T;
 }
 
 const Navbar = () => {
@@ -55,10 +55,15 @@ const Navbar = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axiosInstance.get<ApiResponseCategory<CategoryType[]>>("/categories");
-        setCategories(response.data.data);
+        const response = await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories", { requiresAuth: false });
+        if (response.status === 200) {
+          setCategories(response.data.data);
+        } else {
+          toast.error('Cannot fetch categories');
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
+        toast.error('Cannot fetch categories');
       }
     };
     fetchCategories();
@@ -84,10 +89,16 @@ const Navbar = () => {
         .replace(/[^a-z0-9\s]/g, '')
         .replace(/\s+/g, '-');
 
-      const response = await axiosInstance.get(`/posts/search?query=${normalizedQuery}&page=0&size=5`);
-      setSearchResults(response.data.data.contents);
+      const response = await axiosInstance.get(`/posts/search?query=${normalizedQuery}&page=0&size=5`, { requiresAuth: false });
+      if (response.status === 200) {
+        setSearchResults(response.data.data.contents);
+      } else {
+        toast.error('Cannot search posts');
+        setSearchResults([]);
+      }
     } catch (error) {
       console.error("Error searching posts:", error);
+      toast.error('Cannot search posts');
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -104,7 +115,7 @@ const Navbar = () => {
   return (
     <div className="w-full fixed top-0 z-50 flex justify-center items-center backdrop-blur-md shadow-sm shadow-neutral-300 dark:shadow-neutral-800">
       <div className="flex container p-2 justify-between items-center">
-        <div className="mr-4 hidden sm:inline-block">
+        <div className="mr-12 hidden sm:inline-block">
           <Logo />
         </div>
         <div className="w-full hidden sm:flex justify-start items-center">
@@ -122,7 +133,7 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <NavLink
                   target="_blank"
-                  to="https://github.com/penguninn/portfolio"
+                  to="https://github.com/penguninn/blog-fe"
                   className="flex flex-row justify-center items-center hover:underline p-2"
                 >
                   <IoLogoGithub />
@@ -208,19 +219,13 @@ const Navbar = () => {
                 <DropdownMenuItem asChild>
                   <Link
                     target="_blank"
-                    to="https://github.com/penguninn"
-                    className="flex flex-row justify-between items-center"
+                    to="https://github.com/penguninn/blog-fe"
+                    className="flex flex-row justify-start items-center"
                   >
                     <IoLogoGithub />
                     Source
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/category/all">
-                    All posts
-                  </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem>                
                 {categories.map((category) => (
                   <DropdownMenuItem key={category.id} asChild>
                     <Link to={`/category/${category.id}`}>

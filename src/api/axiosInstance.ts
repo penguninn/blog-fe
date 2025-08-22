@@ -1,13 +1,16 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { getAccessToken, getRefreshToken, saveTokens, removeTokens } from '../utils/tokenStorage';
 import { AuthTokens } from '../types/auth.types';
+import { jwtDecode } from 'jwt-decode';
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    requiresAuth?: boolean;
+  }
+}
 
 // Get API URL from environment variables
 const BASE_URL = import.meta.env.VITE_API_URL;
-
-// Debug log to check loaded environment variables
-console.log('Environment API URL:', import.meta.env.VITE_API_URL);
-console.log('Using API URL:', BASE_URL);
 
 // Flag to control refresh token processing
 let isRefreshing = false;
@@ -38,6 +41,20 @@ const processQueue = (error: AxiosError | null, token: string | null) => {
 };
 
 /**
+ * Check if token is expired or will expire soon (within 1 minute)
+ */
+const isTokenExpiredOrExpiringSoon = (token: string): boolean => {
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    const currentTime = Date.now() / 1000;
+    const oneMinuteInSeconds = 60;
+    return decoded.exp - currentTime < oneMinuteInSeconds;
+  } catch {
+    return true;
+  }
+};
+
+/**
  * Perform token refresh
  */
 const refreshAuthToken = async (): Promise<string> => {
@@ -46,19 +63,29 @@ const refreshAuthToken = async (): Promise<string> => {
   if (!refreshToken) {
     throw new Error('No refresh token available');
   }
-  
-  const response = await axios.post<AuthTokens>(
-    `${BASE_URL}/auth/login`,
-    { refreshToken },
-    { headers: { 'Content-Type': 'application/json' } }
-  );
-  
-  const { accessToken, refreshToken: newRefreshToken } = response.data;
-  
-  // Save new tokens
-  saveTokens({ accessToken, refreshToken: newRefreshToken });
-  
-  return accessToken;
+
+  try {
+    const response = await axios.post<AuthTokens>(
+      `${BASE_URL}/auth/refresh-token`,
+      
+      { 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${refreshToken}`
+        } 
+      }
+    );
+    
+    const { accessToken, refreshToken: newRefreshToken } = response.data;
+    
+    // Save new tokens
+    saveTokens({ accessToken, refreshToken: newRefreshToken });
+    
+    return accessToken;
+  } catch (error) {
+    removeTokens();
+    throw error;
+  }
 };
 
 /**
@@ -97,8 +124,10 @@ const handleUnauthorized = async (originalRequest: AxiosRequestConfig) => {
     processQueue(refreshError as AxiosError, null);
     removeTokens();
     
-    // Redirect to login (with environment check)
-    if (typeof window !== 'undefined') {
+    // Redirect to login only if refresh token is expired or invalid
+    if (typeof window !== 'undefined' && 
+        (refreshError instanceof AxiosError && 
+         (refreshError.response?.status === 401 || refreshError.response?.status === 403))) {
       window.location.href = '/login';
     }
     
@@ -114,33 +143,82 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
-  (config) => {
-    // Log the request URL for debugging
-    console.log(`Request to: ${config.baseURL}${config.url}`);
+  async (config) => {
+    // Đảm bảo config.headers tồn tại
+    config.headers = config.headers || {};
     
+    // Luôn thêm token vào header nếu có
     const token = getAccessToken();
-    if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    if (token) {
+      // Kiểm tra nếu token sắp hết hạn (trong vòng 1 phút)
+      if (isTokenExpiredOrExpiringSoon(token)) {
+        try {
+          const newToken = await refreshAuthToken();
+          config.headers['Authorization'] = `Bearer ${newToken}`;
+        } catch (error) {
+          console.error('Failed to refresh token:', error);
+          // Không reject ở đây, để response interceptor xử lý
+        }
+      } else {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
+    
+    // Log request để debug
+    console.log('Request:', {
+      method: config.method,
+      url: config.url,
+      headers: config.headers,
+      data: config.data
+    });
+    
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log response để debug
+    console.log('Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
   async (error) => {
+    // Log error để debug
+    console.error('Response error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        headers: error.config?.headers
+      }
+    });
+
     const originalRequest = error.config;
     
-    // Only handle 401 errors and not already retried requests
+    // Xử lý lỗi 401 (Unauthorized) - token hết hạn
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       return handleUnauthorized(originalRequest);
+    }
+    
+    // Xử lý lỗi 403 (Forbidden) - không có quyền truy cập
+    if (error.response?.status === 403) {
+      console.error('Access denied: User does not have permission to access this resource');
+      // Có thể thêm xử lý riêng cho lỗi 403 ở đây
     }
     
     return Promise.reject(error);

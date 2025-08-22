@@ -19,7 +19,6 @@ const Signin = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/admin";
   
-  // Set page title
   useTitle("Sign in");
 
   const handleSubmit = async (e: React.FormEvent) => {

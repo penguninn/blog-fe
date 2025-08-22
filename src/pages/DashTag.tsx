@@ -45,7 +45,7 @@ const DashTag: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axiosInstance.delete(`/tags/${id}`);
+      await axiosInstance.delete(`/tags/${id}`, { requiresAuth: true });
       toast.success('Tag deleted successfully');
       fetchTags();
       toast.success('Update tag list successfully');

@@ -1,11 +1,10 @@
 export { default as Home } from "./Home";
 export { default as PostDetails } from "./PostDetails";
 export { default as NotFound } from "./NotFound";
-export { default as Profile } from "./Profile";
 export { default as EditorPost } from "./EditorPost";
 export { default as DashPost } from "./DashPost";
 export { default as DashCategory } from "./DashCategory";   
-export { default as EditorCategory } from "./EditorCategory";
+export { default as CategoryEditor } from "./EditorCategory";
 export { default as DashTag } from "./DashTag";
-export { default as EditorTag } from "./EditorTag";
+export { default as TagEditor } from "./EditorTag";
 export { default as ListPost } from "./ListPost";
