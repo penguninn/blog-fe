@@ -1,2 +1,7 @@
 User-agent: *
-Allow: / 
+Allow: /
+Sitemap: https://blog.my-domain/sitemap.xml
+
+# Block admin routes from crawlers
+Disallow: /admin/
+Disallow: /user/

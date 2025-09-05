@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ItemPost from "@/components/item-post";
-import axiosInstance from "@/api/axiosInstance";
+import { postService } from "@/services/postService";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -27,38 +27,31 @@ interface PostType {
   tags: TagType[];
 }
 
-interface ApiResponse<T> {
-  status: number;
-  message: string;
-  data: {
-    page: number;
-    size: number;
-    totalPages: number;
-    totalElements: number;
-    contents: T;
-  };
-}
-
 const DashPost: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Thiết lập tiêu đề trang
+
   useTitle("Quản lý bài viết");
 
   const fetchPosts = async () => {
     try {
-      const response = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=${currentPage}&size=5&sort=createdDate,desc`);
-
-      if (response.data) {
-        setPosts(response.data.data.contents);
-        setTotalPages(response.data.data.totalPages);
-        setCurrentPage(response.data.data.page + 1);
+      const page = Math.max(currentPage, 1);
+      const res = await postService.getAll({
+        page,
+        size: 5,
+        sortBy: "CREATED_AT",
+        direction: "DESC",
+      });
+      const payload = (res as any).data?.data || (res as any).data || res;
+      const data = payload.data ? payload.data : payload;
+      if (data && data.contents) {
+        setPosts(data.contents);
+        setTotalPages(data.totalPages ?? 0);
       }
     } catch (err) {
-      console.error('Error when loading post list:', err);
-      toast.error('Cannot load post list');
+      console.error("Error when loading post list:", err);
+      toast.error("Cannot load post list");
     }
   };
 
@@ -68,13 +61,10 @@ const DashPost: React.FC = () => {
 
   const handleDeleteSuccess = () => {
     fetchPosts();
-    toast.success('Update post list successfully');
+    toast.success("Update post list successfully");
   };
 
-  const handlePageChange = (page: number) => {
-    console.log(page);
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
   return (
     <div className="w-full">
@@ -103,12 +93,15 @@ const DashPost: React.FC = () => {
               slug={post.slug}
               title={post.title}
               status={post.status}
-              category={post.category.name}
               tags={post.tags}
               onDeleteSuccess={handleDeleteSuccess}
             />
           ))}
-          <PaginationCustom totalPages={totalPages} currentPage={currentPage} onPageChange={handlePageChange} />
+          <PaginationCustom
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>

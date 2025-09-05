@@ -1,11 +1,27 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Ellipsis } from 'lucide-react';
-import axiosInstance from "@/api/axiosInstance";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Ellipsis } from "lucide-react";
+import { postService } from "@/services/postService";
 import { toast } from "sonner";
 import { useState } from "react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 interface TagType {
   id: string;
@@ -14,20 +30,23 @@ interface TagType {
 
 interface ItemPostProps {
   id: string;
-  title: string;
   slug: string;
+  title: string;
   status: string;
   tags: TagType[];
   onDeleteSuccess?: () => void;
 }
 
-interface ApiResponse<T> {
-  status: number;
-  message: string;
-  data: T;
-}
+// Legacy ApiResponse type removed; using postService responses
 
-const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostProps) => {
+const ItemPost = ({
+  id,
+  slug,
+  title,
+  status,
+  tags,
+  onDeleteSuccess,
+}: ItemPostProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -35,23 +54,21 @@ const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostPr
     setIsDeleting(true);
 
     try {
-      const response = await axiosInstance.delete<ApiResponse<void>>(`/posts/${id}`);
-      if (response.status === 200) {
-        toast.success('Delete post successfully');
+      try {
+        await postService.delete(id);
+        toast.success("Delete post successfully");
         if (onDeleteSuccess) {
           onDeleteSuccess();
         }
-      } else {
-        toast.error('Cannot delete post');
+      } catch (error) {
+        console.error("Error details:", error);
+        toast.error("Cannot delete post");
       }
-    } catch (error) {
-      console.error('Error details:', error);
-      toast.error('Cannot delete post');
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
     }
-  }
+  };
 
   return (
     <>
@@ -61,7 +78,12 @@ const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostPr
             <div className="text-2xl font-bold">{title}</div>
             <div className="flex gap-2">
               {tags?.map((tag) => (
-                <div key={tag.id} className="text-sm text-gray-500 border rounded-md px-2 bg-gray-200 dark:bg-neutral-800">{tag.name}</div>
+                <div
+                  key={tag.id}
+                  className="text-sm text-gray-500 border rounded-md px-2 bg-gray-200 dark:bg-neutral-800"
+                >
+                  {tag.name}
+                </div>
               ))}
             </div>
           </div>
@@ -91,12 +113,18 @@ const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostPr
         </div>
       </div>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to delete?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The post "{title}" will be permanently deleted.
+              This action cannot be undone. The post "{title}" will be
+              permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -104,14 +132,15 @@ const ItemPost = ({ id, slug, title, status, tags, onDeleteSuccess }: ItemPostPr
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-600 text-white">
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
-}
+  );
+};
 
-export default ItemPost; 
+export default ItemPost;

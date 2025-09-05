@@ -17,14 +17,13 @@ interface Tag {
 }
 
 const TagEditor: React.FC = () => {
-  const [name, setName] = useState<string>('');
+  const [name, setName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   useTitle(id ? "Edit tag" : "Create new tag");
 
-  // Tải dữ liệu thẻ khi chỉnh sửa
   useEffect(() => {
     if (id) {
       const fetchTag = async () => {
@@ -35,70 +34,74 @@ const TagEditor: React.FC = () => {
             const tagData = response.data.data as Tag;
             setName(tagData.name);
           } else {
-            toast.error('Cannot load tag information');
-            navigate('/admin/tags');
+            toast.error("Cannot load tag information");
+            navigate("/admin/tags");
           }
         } catch (err) {
-          console.error('Error details:', err);
-          toast.error('An error occurred when loading tag information');
-          navigate('/admin/tags');
+          console.error("Error details:", err);
+          toast.error("An error occurred when loading tag information");
+          navigate("/admin/tags");
         } finally {
           setLoading(false);
         }
       };
-      
+
       fetchTag();
     }
   }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
-      toast.error('Please enter the tag name');
+      toast.error("Please enter the tag name");
       return;
     }
-    
+
     setLoading(true);
     const tagData = {
-      name: name.trim()
-    }
-    
+      name: name.trim(),
+    };
+
     try {
-      let response: { data: ApiResponse };
-      
       if (id) {
-        response = await axiosInstance.put<ApiResponse>(`/tags/${id}`, tagData, { requiresAuth: true });
+        const response = await axiosInstance.put<ApiResponse>(
+          `/tags/${id}`,
+          tagData
+        );
         if (response.data.status === 200) {
-          toast.success('Tag updated successfully');
+          toast.success("Tag updated successfully");
         } else {
-          toast.error(response.data.message || 'Cannot update tag');
+          toast.error(response.data.message || "Cannot update tag");
           setLoading(false);
           return;
         }
       } else {
-        response = await axiosInstance.post<ApiResponse>('/tags', tagData, { requiresAuth: true });
+        const response = await axiosInstance.post<ApiResponse>(
+          "/tags",
+          tagData
+        );
         if (response.data.status === 201 || response.data.status === 200) {
-          toast.success('Tag created successfully');
+          toast.success("Tag created successfully");
         } else {
-          toast.error(response.data.message || 'Cannot create tag');
+          toast.error(response.data.message || "Cannot create tag");
           setLoading(false);
           return;
         }
       }
-      
-      navigate('/admin/tags');
-    } catch (err) {     
-      console.error('Error details:', err);
-      toast.error('An error occurred when saving the tag');
+
+      navigate("/admin/tags");
+    } catch (err) {
+      console.error("Error details:", err);
+      toast.error("An error occurred when saving the tag");
       setLoading(false);
     }
   };
-  
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4">
-        {id ? 'Edit tag' : 'Create new tag'}
+        {id ? "Edit tag" : "Create new tag"}
       </h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -113,7 +116,7 @@ const TagEditor: React.FC = () => {
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Loading...' : 'Save'}
+          {loading ? "Loading..." : "Save"}
         </Button>
       </form>
     </>

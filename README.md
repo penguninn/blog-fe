@@ -1,6 +1,6 @@
 # Pengunin Blog Frontend
 
-A blog application built with React, TypeScript, and Vite, optimized for production environments.
+A local development React application built with React, TypeScript, and Vite for blog management.
 
 ## Features
 
@@ -11,32 +11,14 @@ A blog application built with React, TypeScript, and Vite, optimized for product
 - Support for multiple themes (light/dark)
 - Visual editor for writing posts
 
-## Project Structure
-
-```
-my-react-app/
-├── .github/                   # CI/CD workflows and GitHub configuration
-├── public/                    # Static files
-├── src/
-│   ├── assets/                # Static resources (images, fonts, etc.)
-│   ├── components/            # Reusable components
-│   ├── contexts/              # React contexts
-│   ├── hooks/                 # Custom hooks
-│   ├── layouts/               # Layout components
-│   ├── lib/                   # Libraries and utilities
-│   ├── pages/                 # Page components
-│   ├── services/              # API calls, services
-│   ├── store/                 # State management
-│   ├── types/                 # TypeScript interfaces, types
-│   ├── utils/                 # Helper functions
-```
-
-## Getting Started
+## Local Development Setup
 
 ### Requirements
 
 - Node.js (>= v20.x)
 - npm (>= v10.x)
+- Backend API running on `http://localhost:8080`
+- Keycloak authentication server on `http://localhost:9000`
 
 ### Installation
 
@@ -49,38 +31,55 @@ cd blog-fe
 
 # Install dependencies
 npm install
+
+# Copy environment variables
+cp .env.example .env
 ```
 
-### Running the Project
+### Configuration
+
+1. **Environment Variables**: Edit `.env` file with your Keycloak settings:
+
+   ```bash
+   VITE_KEYCLOAK_URL=http://localhost:9000
+   VITE_KEYCLOAK_REALM=blog-realm
+   VITE_KEYCLOAK_CLIENT_ID=blog-spa
+   VITE_ENABLE_LOGGING=true
+   ```
+
+2. **Keycloak Client Setup** (localhost:9000):
+   - Client ID: `blog-spa`
+   - Client Type: Public
+   - Valid Redirect URIs: `http://localhost:5173/*`
+   - Web Origins: `http://localhost:5173`
+
+### Running the Application
 
 ```bash
-# Run development environment
+# Start development server (http://localhost:5173)
 npm run dev
 
-# Build for production
-npm run build:prod
+# Build for testing
+npm run build
 
 # Run tests
-npm test
+npm run test
 
 # Check linting
 npm run lint
+
+# Preview built app
+npm run preview
 ```
 
-## Environment
+### API Integration
 
-The project uses environment variables for configuration:
+- Frontend runs on `http://localhost:5173`
+- API calls are proxied to `http://localhost:8080` via Vite dev server
+- All API calls use relative paths (e.g., `api.get('/posts')`)
 
-- `.env` - Development environment
-- `.env.production` - Production environment
+### Development Notes
 
-## Deployment
-
-The project uses GitHub Actions for CI/CD pipeline. Each push to the `main` branch will automatically test, build, and deploy the code.
-
-## Optimizations
-
-- Code splitting and lazy loading
-- Bundle size optimization
-- Separating large dependencies into separate chunks
-- Automatic minification in production environment
+- CSP iframe warnings are disabled for Keycloak in development mode
+- Console logging is enabled via `VITE_ENABLE_LOGGING=true`
+- Source maps are generated in development builds

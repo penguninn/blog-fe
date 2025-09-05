@@ -3,7 +3,7 @@ export { default as PostDetails } from "./PostDetails";
 export { default as NotFound } from "./NotFound";
 export { default as EditorPost } from "./EditorPost";
 export { default as DashPost } from "./DashPost";
-export { default as DashCategory } from "./DashCategory";   
+export { default as DashCategory } from "./DashCategory";
 export { default as CategoryEditor } from "./EditorCategory";
 export { default as DashTag } from "./DashTag";
 export { default as TagEditor } from "./EditorTag";

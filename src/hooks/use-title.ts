@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-export function useTitle(title: string, siteName = 'Pencraft') {
+export function useTitle(title: string, siteName = "Pencraft") {
   useEffect(() => {
     const prevTitle = document.title;
     document.title = title ? `${title} | ${siteName}` : siteName;
@@ -10,4 +10,4 @@ export function useTitle(title: string, siteName = 'Pencraft') {
   }, [title, siteName]);
 }
 
-export default useTitle; 
+export default useTitle;

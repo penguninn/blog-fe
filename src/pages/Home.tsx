@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CardPost from "@/components/card-post";
 import axiosInstance from "@/api/axiosInstance";
 import { Label } from "@/components/ui/label";
@@ -35,32 +35,37 @@ const Home = () => {
   const [topPosts, setTopPosts] = useState<PostType[]>([]);
   const [newPosts, setNewPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   useTitle("Home");
 
+  const fetchedRef = useRef(false);
+
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        // Fetch top posts
-        const topResponse = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=1&size=5&sort=view,desc`, { requiresAuth: false });
+        const topResponse = await axiosInstance.get<ApiResponse<PostType[]>>(
+          `/posts?page=1&size=5&sortBy=MODIFIED_AT&direction=DESC`
+        );
         if (topResponse.data && topResponse.data.data) {
           setTopPosts(topResponse.data.data.contents);
         }
-        
-        // Fetch new posts
-        const newResponse = await axiosInstance.get<ApiResponse<PostType[]>>(`/posts?page=1&size=5&sort=createdDate,desc`, { requiresAuth: false });
+        const newResponse = await axiosInstance.get<ApiResponse<PostType[]>>(
+          `/posts?page=1&size=5&sortBy=CREATED_AT&direction=DESC`
+        );
         if (newResponse.data && newResponse.data.data) {
           setNewPosts(newResponse.data.data.contents);
         }
       } catch (err) {
-        console.error('Error fetching posts:', err);
-        toast.error('Failed to load posts');
+        console.error("Error fetching posts:", err);
+        toast.error("Failed to load posts");
       } finally {
         setLoading(false);
       }
     };
-    
     fetchPosts();
   }, []);
 
@@ -72,14 +77,18 @@ const Home = () => {
         <>
           <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center px-4">
             <div className="w-full flex justify-between items-center gap-4 px-2">
-              <Label className="w-full text-3xl font-bold mb-5 text-start">Top Posts</Label>
+              <Label className="w-full text-3xl font-bold mb-5 text-start">
+                Top Posts
+              </Label>
               <div className="w-full">
                 <Separator className="w-full" />
               </div>
             </div>
             <div className="w-full flex flex-col gap-4">
               {topPosts.length === 0 ? (
-                <div className="w-full py-4 text-center">No top posts found</div>
+                <div className="w-full py-4 text-center">
+                  No top posts found
+                </div>
               ) : (
                 <>
                   {topPosts.map((post) => (
@@ -91,22 +100,31 @@ const Home = () => {
                       tags={post.tags}
                     />
                   ))}
-                  <Link to={`/posts/top-posts`} className="text-end hover:text-blue-500 hover:underline">Browse more...</Link>
+                  <Link
+                    to={`/posts/top-posts`}
+                    className="text-end hover:text-blue-500 hover:underline"
+                  >
+                    Browse more...
+                  </Link>
                 </>
               )}
             </div>
           </div>
-          
+
           <div className="w-full max-w-5xl flex flex-col pt-10 items-center justify-center px-4">
             <div className="w-full flex justify-between items-center gap-4 px-2">
-              <Label className="w-full text-3xl font-bold mb-5 text-start">New Posts</Label>
+              <Label className="w-full text-3xl font-bold mb-5 text-start">
+                New Posts
+              </Label>
               <div className="w-full">
                 <Separator className="w-full" />
               </div>
             </div>
             <div className="w-full flex flex-col gap-4">
               {newPosts.length === 0 ? (
-                <div className="w-full py-4 text-center">No new posts found</div>
+                <div className="w-full py-4 text-center">
+                  No new posts found
+                </div>
               ) : (
                 <>
                   {newPosts.map((post) => (
@@ -118,7 +136,12 @@ const Home = () => {
                       tags={post.tags}
                     />
                   ))}
-                  <Link to={`/posts/new-posts`} className="text-end hover:text-blue-500 hover:underline">Browse more...</Link>
+                  <Link
+                    to={`/posts/new-posts`}
+                    className="text-end hover:text-blue-500 hover:underline"
+                  >
+                    Browse more...
+                  </Link>
                 </>
               )}
             </div>

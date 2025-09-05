@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axiosInstance from "@/api/axiosInstance";
+import { postService } from "@/services/postService";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -20,6 +21,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import ProfileCustom from "./profile-custom";
 
 interface CategoryType {
   id: string;
@@ -51,19 +53,26 @@ const Navbar = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
-  
+
+  const fetchedCategoriesRef = useRef(false);
+
   useEffect(() => {
+    if (fetchedCategoriesRef.current) return;
+    fetchedCategoriesRef.current = true;
+
     const fetchCategories = async () => {
       try {
-        const response = await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories", { requiresAuth: false });
+        const response =
+          await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories");
         if (response.status === 200) {
-          setCategories(response.data.data);
+          const payload = response.data?.data;
+          setCategories(Array.isArray(payload) ? payload : []);
         } else {
-          toast.error('Cannot fetch categories');
+          toast.error("Cannot fetch categories");
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        toast.error('Cannot fetch categories');
+        console.warn("Error fetching categories:", error);
+        toast.error("Cannot fetch categories");
       }
     };
     fetchCategories();
@@ -83,22 +92,24 @@ const Navbar = () => {
     try {
       const normalizedQuery = query
         .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d")
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, "-");
 
-      const response = await axiosInstance.get(`/posts/search?query=${normalizedQuery}&page=0&size=5`, { requiresAuth: false });
-      if (response.status === 200) {
-        setSearchResults(response.data.data.contents);
-      } else {
-        toast.error('Cannot search posts');
-        setSearchResults([]);
-      }
+      const res = await postService.search({
+        query: normalizedQuery,
+        page: 1,
+        size: 5,
+      });
+      const payload = (res as any).data?.data || (res as any).data || res;
+      const data = payload.data ? payload.data : payload;
+      const contents = data?.contents;
+      setSearchResults(Array.isArray(contents) ? contents : []);
     } catch (error) {
-      console.error("Error searching posts:", error);
-      toast.error('Cannot search posts');
+      console.warn("Error searching posts:", error);
+      toast.error("Cannot search posts");
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -142,13 +153,16 @@ const Navbar = () => {
               </NavigationMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-1 p-2 hover:underline">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-1 p-2 hover:underline"
+                  >
                     Categories
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56">
-                  {categories.length > 0 && (
+                  {categories.length > 0 &&
                     categories.map((category) => (
                       <DropdownMenuItem key={category.id} asChild>
                         <Link
@@ -158,8 +172,7 @@ const Navbar = () => {
                           {category.name}
                         </Link>
                       </DropdownMenuItem>
-                    ))
-                  )}
+                    ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </NavigationMenuList>
@@ -168,9 +181,9 @@ const Navbar = () => {
         <div className="w-full flex justify-center md:justify-end gap-3 items-center">
           <div className="relative">
             <Input
-              className="w-sm focus-visible:ring-0 bg-gray-100 dark:bg-gray-800" 
+              className="w-sm focus-visible:ring-0 bg-gray-100 dark:bg-gray-800"
               type="search"
-              placeholder="Search anything ..." 
+              placeholder="Search anything ..."
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => setShowResults(true)}
@@ -178,9 +191,13 @@ const Navbar = () => {
             {showResults && (searchQuery || searchResults.length > 0) && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
                 {isSearching ? (
-                  <div className="p-2 text-center text-gray-500">Searching...</div>
+                  <div className="p-2 text-center text-gray-500">
+                    Searching...
+                  </div>
                 ) : searchResults.length === 0 ? (
-                  <div className="p-2 text-center text-gray-500">No results found</div>
+                  <div className="p-2 text-center text-gray-500">
+                    No results found
+                  </div>
                 ) : (
                   <div className="max-h-[250px] overflow-y-auto">
                     {searchResults.slice(0, 5).map((post) => (
@@ -189,10 +206,12 @@ const Navbar = () => {
                         className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b last:border-b-0 border-gray-100 dark:border-gray-700"
                         onClick={() => handleResultClick(post.slug)}
                       >
-                        <div className="font-medium text-gray-900 dark:text-gray-100">{post.title}</div>
-                        {post.tags.length > 0 && (
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {post.title}
+                        </div>
+                        {Array.isArray(post.tags) && post.tags.length > 0 && (
                           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {post.tags.map(tag => tag.name).join(', ')}
+                            {post.tags.map((tag) => tag.name).join(", ")}
                           </div>
                         )}
                       </div>
@@ -203,6 +222,7 @@ const Navbar = () => {
             )}
           </div>
           <ModeToggle />
+          <ProfileCustom />
           <div className="inline-block md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -225,12 +245,10 @@ const Navbar = () => {
                     <IoLogoGithub />
                     Source
                   </Link>
-                </DropdownMenuItem>                
+                </DropdownMenuItem>
                 {categories.map((category) => (
                   <DropdownMenuItem key={category.id} asChild>
-                    <Link to={`/category/${category.id}`}>
-                      {category.name}
-                    </Link>
+                    <Link to={`/category/${category.id}`}>{category.name}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

@@ -2,14 +2,30 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "@/api/axiosInstance";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus, Trash } from "lucide-react";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useTitle } from "@/hooks";
 
 const DashTag: React.FC = () => {
-
   interface TagType {
     id: string;
     name: string;
@@ -24,18 +40,16 @@ const DashTag: React.FC = () => {
   const [tags, setTags] = useState<TagType[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<TagType>();
-  
-  // Set page title
   useTitle("Manage tags");
 
   const fetchTags = async () => {
     try {
-      const response = await axiosInstance.get<ApiResponse>('/tags');
+      const response = await axiosInstance.get<ApiResponse>("/tags");
       if (response.data) {
         setTags(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching tags:', err);
+      console.error("Error fetching tags:", err);
     }
   };
 
@@ -45,15 +59,15 @@ const DashTag: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axiosInstance.delete(`/tags/${id}`, { requiresAuth: true });
-      toast.success('Tag deleted successfully');
+      await axiosInstance.delete(`/tags/${id}`);
+      toast.success("Tag deleted successfully");
       fetchTags();
-      toast.success('Update tag list successfully');
+      toast.success("Update tag list successfully");
     } catch (err) {
-      console.error('Error deleting tag:', err);
-      toast.error('Error deleting tag');
+      console.error("Error deleting tag:", err);
+      toast.error("Error deleting tag");
     }
-  }
+  };
 
   return (
     <div className="w-full">
@@ -92,33 +106,44 @@ const DashTag: React.FC = () => {
                         <Edit className="w-4 h-4" />
                       </Button>
                     </Link>
-                    <Button variant="outline" size="icon" onClick={() => {
-                      setTagToDelete(tag);
-                      setIsDeleteDialogOpen(true);
-                    }}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setTagToDelete(tag);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
                       <Trash className="w-4 h-4" />
                     </Button>
                   </TableCell>
-                </TableRow> 
+                </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
       {tagToDelete && (
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
+              <AlertDialogTitle>
+                Are you sure you want to delete?
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. The tag "{tagToDelete.name}" will be permanently deleted.
+                This action cannot be undone. The tag "{tagToDelete.name}" will
+                be permanently deleted.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleDelete(tagToDelete.id)}
-                className="bg-red-500 hover:bg-red-600 text-white">
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

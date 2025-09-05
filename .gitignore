@@ -25,3 +25,12 @@ dist-ssr
 
 # Environment variables
 .env
+.env.local
+.env.*.local
+
+# Build outputs
+dist-ssr
+coverage
+
+# Prettier
+.prettierignore

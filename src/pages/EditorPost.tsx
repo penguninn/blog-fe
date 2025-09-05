@@ -1,23 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useEditor, EditorContent, JSONContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import TextAlign from '@tiptap/extension-text-align';
-import Underline from '@tiptap/extension-underline';
-import Blockquote from '@tiptap/extension-blockquote';
-import EditorMenuBar from '@/components/editor-menu-bar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import OrderedList from '@tiptap/extension-ordered-list';
-import BulletList from '@tiptap/extension-bullet-list';
-import CodeBlock from '@tiptap/extension-code-block';
-import Image from '@tiptap/extension-image';
-import axiosInstance from '@/api/axiosInstance';
-import { Select, SelectValue, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { useNavigate, useParams } from 'react-router-dom';
-import Heading from '@tiptap/extension-heading';
-import { MultiSelect } from '@/components/multi-select';
-import { useTitle } from '@/hooks';
+import React, { useState, useEffect } from "react";
+import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
+import Blockquote from "@tiptap/extension-blockquote";
+import EditorMenuBar from "@/components/editor-menu-bar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import OrderedList from "@tiptap/extension-ordered-list";
+import BulletList from "@tiptap/extension-bullet-list";
+import CodeBlock from "@tiptap/extension-code-block";
+import Image from "@tiptap/extension-image";
+import axiosInstance from "@/api/axiosInstance";
+import { postService } from "@/services/postService";
+import {
+  Select,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { useNavigate, useParams } from "react-router-dom";
+import Heading from "@tiptap/extension-heading";
+import { MultiSelect } from "@/components/multi-select";
+import { useTitle } from "@/hooks";
 
 interface CategoryType {
   id: string;
@@ -56,64 +63,68 @@ interface ApiResponse<T> {
 }
 
 const EditorPost: React.FC = () => {
-  const [title, setTitle] = useState<string>('');
+  const [title, setTitle] = useState<string>("");
   const [category, setCategory] = useState<CategoryType>();
   const [categories, setCategories] = useState<Array<CategoryType>>([]);
   const [tagOptions, setTagOptions] = useState<Array<TagOption>>([]);
   const [selectedTags, setSelectedTags] = useState<Array<string>>([]);
-  const [status, setStatus] = useState<string>('PUBLISHED');
-  
+  const [status, setStatus] = useState<string>("PUBLISHED");
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  // Set page title
-  useTitle(id ? 'Edit post' : 'Create new post');
+  useTitle(id ? "Edit post" : "Create new post");
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false,
+        blockquote: false,
+        orderedList: false,
+        bulletList: false,
+        codeBlock: false,
+      }),
       Heading.configure({
         levels: [1, 2, 3, 4, 5, 6],
         HTMLAttributes: {
-          class: 'pt-5 pb-2',
+          class: "pt-5 pb-2",
         },
       }),
       Blockquote.configure({
         HTMLAttributes: {
-          class: 'border-l-4 border-neutral-300 dark:border-neutral-600 pl-4',
+          class: "border-l-4 border-neutral-300 dark:border-neutral-600 pl-4",
         },
       }),
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'blockquote'],
+        types: ["heading", "paragraph", "blockquote"],
       }),
       OrderedList.configure({
         HTMLAttributes: {
-          class: 'list-decimal pl-10 py-2',
+          class: "list-decimal pl-10 py-2",
         },
       }),
       BulletList.configure({
         HTMLAttributes: {
-          class: 'list-disc pl-10 py-2',
+          class: "list-disc pl-10 py-2",
         },
       }),
       CodeBlock.configure({
         HTMLAttributes: {
-          class: 'bg-neutral-700 p-2 rounded-md',
+          class: "bg-neutral-700 p-2 rounded-md",
         },
       }),
       Image.configure({
         HTMLAttributes: {
-          class: 'w-full my-5 border',
+          class: "w-full my-5 border",
           allowBase64: true,
         },
       }),
       Underline,
     ],
-    content: '',
+    content: "",
     editorProps: {
       attributes: {
-        class: "min-h-[550px] cursor-text rounded-sm border p-3"
-      }
+        class: "min-h-[550px] cursor-text rounded-sm border p-3",
+      },
     },
     editable: true,
   });
@@ -121,42 +132,48 @@ const EditorPost: React.FC = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const categoriesResponse = await axiosInstance.get<ApiResponse<CategoryType[]>>('/categories');
+        const categoriesResponse =
+          await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories");
         setCategories(categoriesResponse.data.data);
-        
-        const tagsResponse = await axiosInstance.get<ApiResponse<TagType[]>>('/tags');
-        const options = tagsResponse.data.data.map(tag => ({
+
+        const tagsResponse =
+          await axiosInstance.get<ApiResponse<TagType[]>>("/tags");
+        const options = tagsResponse.data.data.map((tag) => ({
           label: tag.name,
-          value: tag.id
+          value: tag.id,
         }));
         setTagOptions(options);
-        
+
         if (id) {
-          const postResponse = await axiosInstance.get<ApiResponse<PostType>>(`/posts/i/${id}`);
-          const post = postResponse.data.data;
-          
+          const postResponse = await postService.getById(id);
+          const payload =
+            (postResponse as any).data?.data ||
+            (postResponse as any).data ||
+            postResponse;
+          const post: PostType = payload.data ? payload.data : payload;
+
           setTitle(post.title);
           setStatus(post.status);
           setCategory(post.category);
-          
-          const tagIds = post.tags.map(tag => tag.id);
+
+          const tagIds = post.tags.map((tag) => tag.id);
           setSelectedTags(tagIds);
-          
+
           if (post.contents && post.contents.length > 0) {
             editor?.commands.setContent(post.contents[0]);
           }
         }
       } catch (error) {
-        console.error('Error fetching initial data:', error);
-        toast.error('Cannot load initial data');
+        console.error("Error fetching initial data:", error);
+        toast.error("Cannot load initial data");
       }
     };
-    
+
     fetchInitialData();
   }, [id, editor]);
 
   const handleCategoryChange = (categoryId: string) => {
-    const selectedCategory = categories.find(cat => cat.id === categoryId);
+    const selectedCategory = categories.find((cat) => cat.id === categoryId);
     if (selectedCategory) {
       setCategory(selectedCategory);
     }
@@ -166,58 +183,37 @@ const EditorPost: React.FC = () => {
     setStatus(status);
   };
 
-  const createSlugFromTitle = (title: string): string => {
-    const slugFromTitle = title
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[đĐ]/g, 'd')
-      .replace(/[^a-z0-9\s]/g, '')
-      .replace(/\s+/g, '-');
-    
-    if (!id) {
-      const timestamp = Date.now().toString();
-      return `${slugFromTitle}-${timestamp}`;
-    }
-    return slugFromTitle;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       const currentContent = editor?.getJSON();
-      const postData = {
+      const postData: any = {
         title: title,
-        slug: createSlugFromTitle(title),
+        excerpt: undefined,
         status: status,
-        category: category,
-        tags: tagOptions
-          .filter(tag => selectedTags.includes(tag.value))
-          .map(tag => ({
-            id: tag.value,
-            name: tag.label
-          })),
+        categoryId: category?.id,
+        tagIds: selectedTags,
         contents: [
           {
             type: "doc",
-            content: currentContent?.content
-          }
-        ]
+            content: currentContent?.content,
+          },
+        ],
       };
 
       if (id) {
-        await axiosInstance.put(`/posts/${id}`, postData);
-        toast.success('Update post successfully');
+        await postService.update(id, postData);
+        toast.success("Update post successfully");
       } else {
-        await axiosInstance.post('/posts', postData);
-        toast.success('Create new post successfully');
+        postData.slug = null;
+        await postService.create(postData);
+        toast.success("Create new post successfully");
       }
-      navigate('/admin/posts');
-      
+      navigate("/admin/posts");
     } catch (err) {
-      console.error('Error details:', err);
-      toast.error('Error when saving post');
+      console.error("Error details:", err);
+      toast.error("Error when saving post");
     }
   };
 
@@ -235,7 +231,7 @@ const EditorPost: React.FC = () => {
             required
           />
         </div>
-        <div className='mb-4'>
+        <div className="mb-4">
           <MultiSelect
             options={tagOptions}
             onValueChange={setSelectedTags}
@@ -247,23 +243,20 @@ const EditorPost: React.FC = () => {
           />
         </div>
         <div className="mb-4 w-full flex justify-between items-center gap-3">
-          <Select 
-            onValueChange={handleCategoryChange} 
-            value={category?.id}
-          >
+          <Select onValueChange={handleCategoryChange} value={category?.id}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              {
-                categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))
-              }
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select 
-            onValueChange={handleStatusChange} 
+          <Select
+            onValueChange={handleStatusChange}
             defaultValue={status}
             value={status}
           >
@@ -280,10 +273,7 @@ const EditorPost: React.FC = () => {
           <EditorMenuBar editor={editor} />
           <EditorContent editor={editor} />
         </div>
-        <Button 
-          type="submit" 
-          className='w-full'
-        >
+        <Button type="submit" className="w-full">
           Save
         </Button>
       </form>
