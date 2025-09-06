@@ -70,7 +70,7 @@ const DashPost: React.FC = () => {
     <div className="w-full">
       <h1 className="text-2xl font-bold">Post List</h1>
       <div className="flex justify-end mb-4">
-        <Button asChild>
+        <Button variant="outline" asChild>
           <Link to="/admin/posts/create" className="flex items-center gap-1">
             <Plus className="w-4 h-4" /> Create new post
           </Link>
@@ -80,7 +80,7 @@ const DashPost: React.FC = () => {
       {posts.length === 0 ? (
         <div className="text-center p-8 border border-dashed rounded-md">
           <p className="text-gray-500 mb-4">No post yet</p>
-          <Button asChild>
+          <Button variant="outline" asChild>
             <Link to="/admin/posts/create">Create new post</Link>
           </Button>
         </div>

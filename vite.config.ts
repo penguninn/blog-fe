@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
               "@tiptap/extension-image",
               "@tiptap/extension-link",
             ],
-            auth: ["@react-keycloak/web", "keycloak-js", "jwt-decode"],
+            auth: ["@react-keycloak/web", "keycloak-js"],
           },
         },
       },

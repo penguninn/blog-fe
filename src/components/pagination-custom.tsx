@@ -68,7 +68,7 @@ export function PaginationCustom({
               isActive={currentPage === page}
               className={
                 currentPage === page
-                  ? "font-bold text-white bg-primary"
+                  ? "font-bold"
                   : "cursor-pointer"
               }
             >

@@ -124,13 +124,13 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full fixed top-0 z-50 flex justify-center items-center backdrop-blur-md shadow-sm shadow-neutral-300 dark:shadow-neutral-800">
-      <div className="flex container p-2 justify-between items-center">
+    <div className="w-full fixed top-0 z-50 flex justify-center items-center backdrop-blur-md shadow-sm shadow-neutral-300 dark:shadow-neutral-800 bg-[var(--navbar)] text-[var(--navbar-foreground)] border-b border-[var(--navbar-border)]">
+      <div className="flex w-full py-2 mx-2 sm:mx-10 justify-between items-center">
         <div className="mr-12 hidden sm:inline-block">
           <Logo />
         </div>
         <div className="w-full hidden sm:flex justify-start items-center">
-          <NavigationMenu className="hidden md:block">
+          <NavigationMenu className="hidden lg:block">
             <NavigationMenuList className="gap-5">
               <NavigationMenuItem>
                 <NavLink
@@ -178,10 +178,10 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="w-full flex justify-center md:justify-end gap-3 items-center">
-          <div className="relative">
+        <div className="w-full flex justify-end md:justify-end gap-1.5 md:items-center">
+          <div className="w-full sm:w-sm relative">
             <Input
-              className="w-sm focus-visible:ring-0 bg-gray-100 dark:bg-gray-800"
+              className="w-full sm:w-sm focus-visible:ring-0 bg-[var(--navbar-input)] border-[var(--navbar-input-border)] text-[var(--navbar-foreground)] shadow-xs hover:shadow-sm"
               type="search"
               placeholder="Search anything ..."
               value={searchQuery}
@@ -189,13 +189,13 @@ const Navbar = () => {
               onFocus={() => setShowResults(true)}
             />
             {showResults && (searchQuery || searchResults.length > 0) && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--navbar)] text-[var(--navbar-foreground)] rounded-md shadow-lg border border-[var(--navbar-border)]">
                 {isSearching ? (
-                  <div className="p-2 text-center text-gray-500">
+                  <div className="p-2 text-center text-muted-foreground">
                     Searching...
                   </div>
                 ) : searchResults.length === 0 ? (
-                  <div className="p-2 text-center text-gray-500">
+                  <div className="p-2 text-center text-muted-foreground">
                     No results found
                   </div>
                 ) : (
@@ -203,14 +203,14 @@ const Navbar = () => {
                     {searchResults.slice(0, 5).map((post) => (
                       <div
                         key={post.id}
-                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b last:border-b-0 border-gray-100 dark:border-gray-700"
+                        className="p-3 hover:bg-[var(--navbar-input)] cursor-pointer border-b last:border-b-0 border-[var(--navbar-border)]"
                         onClick={() => handleResultClick(post.slug)}
                       >
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                        <div className="font-medium text-foreground">
                           {post.title}
                         </div>
                         {Array.isArray(post.tags) && post.tags.length > 0 && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          <div className="text-sm text-muted-foreground mt-1">
                             {post.tags.map((tag) => tag.name).join(", ")}
                           </div>
                         )}
@@ -222,38 +222,38 @@ const Navbar = () => {
             )}
           </div>
           <ModeToggle />
+          <div className="inline-block lg:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-9 h-9">
+                <RxHamburgerMenu />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              <DropdownMenuItem asChild>
+                <Link to="https://penguninn.com/" target="_blank">
+                  About
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  target="_blank"
+                  to="https://github.com/penguninn/blog-fe"
+                  className="flex flex-row justify-start items-center"
+                >
+                  <IoLogoGithub />
+                  Source
+                </Link>
+              </DropdownMenuItem>
+              {categories.map((category) => (
+                <DropdownMenuItem key={category.id} asChild>
+                  <Link to={`/category/${category.id}`}>{category.name}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
           <ProfileCustom />
-          <div className="inline-block md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-9 h-9">
-                  <RxHamburgerMenu />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36">
-                <DropdownMenuItem asChild>
-                  <Link to="https://penguninn.com/" target="_blank">
-                    About
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    target="_blank"
-                    to="https://github.com/penguninn/blog-fe"
-                    className="flex flex-row justify-start items-center"
-                  >
-                    <IoLogoGithub />
-                    Source
-                  </Link>
-                </DropdownMenuItem>
-                {categories.map((category) => (
-                  <DropdownMenuItem key={category.id} asChild>
-                    <Link to={`/category/${category.id}`}>{category.name}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
       </div>
     </div>

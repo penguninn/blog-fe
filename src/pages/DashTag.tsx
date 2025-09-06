@@ -72,7 +72,7 @@ const DashTag: React.FC = () => {
   return (
     <div className="w-full">
       <div className="flex justify-end mb-4">
-        <Button asChild>
+        <Button variant="outline" asChild>
           <Link to="/admin/tags/create" className="flex items-center gap-1">
             <Plus className="w-4 h-4" /> Create new tag
           </Link>
@@ -82,7 +82,7 @@ const DashTag: React.FC = () => {
       {tags.length === 0 ? (
         <div className="text-center p-8 border border-dashed rounded-md">
           <p className="text-gray-500 mb-4">No tag yet</p>
-          <Button asChild>
+          <Button variant="outline" asChild>
             <Link to="/admin/tags/create">Create new tag</Link>
           </Button>
         </div>

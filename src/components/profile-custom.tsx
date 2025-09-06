@@ -9,13 +9,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
-import { LogOut, LogIn, User, UserPen } from "lucide-react";
+import { LogOut, LogIn, User, UserPen, LayoutDashboard } from "lucide-react";
 import { userService, type UserProfile } from "@/services/userService";
 import { useKeycloakAuth } from "@/hooks/useKeycloak";
 
 function ProfileCustom() {
   const navigate = useNavigate();
-  const { isAuthenticated, login, logout, user: tokenUser } = useKeycloakAuth();
+  const { isAuthenticated, login, logout, user: tokenUser, hasRole } = useKeycloakAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -46,6 +46,10 @@ function ProfileCustom() {
 
   const handleEditProfile = () => {
     navigate("/user/profile/edit");
+  };
+
+  const handleOpenAdmin = () => {
+    navigate("/admin");
   };
 
   const handleLogout = () => {
@@ -88,10 +92,23 @@ function ProfileCustom() {
               {loading ? "Loading..." : error ? "Profile" : displayName}
             </span>
             <DropdownMenuSeparator />
+            {hasRole?.("admin") && (
+              <DropdownMenuItem asChild>
+                <Button
+                  variant="outline"
+                  className="w-full h-9 mb-1"
+                  onClick={handleOpenAdmin}
+                >
+                  <span className="w-full h-full flex justify-between items-center">
+                    Management Dashboard <LayoutDashboard />
+                  </span>
+                </Button>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild>
               <Button
                 variant="outline"
-                className="w-full h-9"
+                className="w-full h-9 mb-1"
                 onClick={handleEditProfile}
               >
                 <span className="w-full h-full flex justify-between items-center">

@@ -119,7 +119,7 @@ const CategoryEditor: React.FC = () => {
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button variant="outline" type="submit" className="w-full" disabled={loading}>
           {loading ? "Loading..." : "Save"}
         </Button>
       </form>

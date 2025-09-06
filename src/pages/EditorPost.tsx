@@ -109,7 +109,7 @@ const EditorPost: React.FC = () => {
       }),
       CodeBlock.configure({
         HTMLAttributes: {
-          class: "bg-neutral-700 p-2 rounded-md",
+          class: "bg-neutral-300 dark:bg-neutral-700 p-2 rounded-md",
         },
       }),
       Image.configure({
@@ -240,6 +240,7 @@ const EditorPost: React.FC = () => {
             placeholder="Select tags"
             animation={2}
             maxCount={10}
+            className="border-neutral-200 dark:border-neutral-600"
           />
         </div>
         <div className="mb-4 w-full flex justify-between items-center gap-3">
@@ -273,7 +274,7 @@ const EditorPost: React.FC = () => {
           <EditorMenuBar editor={editor} />
           <EditorContent editor={editor} />
         </div>
-        <Button type="submit" className="w-full">
+        <Button variant="outline" type="submit" className="w-full">
           Save
         </Button>
       </form>

@@ -8,6 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useTitle } from "@/hooks";
 
@@ -160,14 +168,14 @@ const ProfileEditPage = () => {
       <form onSubmit={handleProfileSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2">Display name</Label>
+            <Label className="mb-2 ml-1">Display name</Label>
             <Input
               value={pf.displayName}
               onChange={(e) => setPf({ ...pf, displayName: e.target.value })}
             />
           </div>
           <div>
-            <Label className="mb-2">Date of birth</Label>
+            <Label className="mb-2 ml-1">Date of birth</Label>
             <Input
               type="date"
               value={pf.dob}
@@ -177,23 +185,24 @@ const ProfileEditPage = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2">Gender</Label>
-            <select
-              className="border-input dark:bg-input/30 bg-transparent border rounded-md h-9 px-3"
+            <Label className="mb-2 ml-1">Gender</Label>
+            <Select
               value={pf.gender}
-              onChange={(e) =>
-                setPf({
-                  ...pf,
-                  gender: e.target.value as ProfileForm["gender"],
-                })
+              onValueChange={(v) =>
+                setPf({ ...pf, gender: v as ProfileForm["gender"] })
               }
             >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
+              <SelectTrigger className="w-full" size="default">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <Label className="mb-2">Avatar URL</Label>
+            <Label className="mb-2 ml-1">Avatar URL</Label>
             <Input
               placeholder="https://..."
               value={pf.avatarUrl}
@@ -202,9 +211,8 @@ const ProfileEditPage = () => {
           </div>
         </div>
         <div>
-          <Label className="mb-2">Bio</Label>
-          <textarea
-            className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex min-h-24 w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          <Label className="mb-2 ml-1">Bio</Label>
+          <Textarea
             value={pf.bio}
             onChange={(e) => setPf({ ...pf, bio: e.target.value })}
             placeholder="Tell something about you"
@@ -221,7 +229,11 @@ const ProfileEditPage = () => {
           </div>
         )}
         <div className="flex gap-2">
-          <Button type="submit" disabled={!canSaveProfile || savingProfile}>
+          <Button
+            variant="outline"
+            type="submit"
+            disabled={!canSaveProfile || savingProfile}
+          >
             {savingProfile ? "Saving..." : "Save profile"}
           </Button>
           <Button
@@ -242,14 +254,14 @@ const ProfileEditPage = () => {
         <h2 className="text-xl font-semibold">Account</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2">Username</Label>
+            <Label className="mb-2 ml-1">Username</Label>
             <Input
               value={af.username}
               onChange={(e) => setAf({ ...af, username: e.target.value })}
             />
           </div>
           <div>
-            <Label className="mb-2">Email</Label>
+            <Label className="mb-2 ml-1">Email</Label>
             <Input
               type="email"
               value={af.email}
@@ -258,7 +270,11 @@ const ProfileEditPage = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button type="submit" disabled={!canSaveAccount || savingAccount}>
+          <Button
+            variant="outline"
+            type="submit"
+            disabled={!canSaveAccount || savingAccount}
+          >
             {savingAccount ? "Saving..." : "Save account"}
           </Button>
           <Button

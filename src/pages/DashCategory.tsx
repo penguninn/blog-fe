@@ -85,7 +85,7 @@ const DashCategory: React.FC = () => {
     <div className="w-full">
       <h1 className="text-2xl font-bold">Category List</h1>
       <div className="flex justify-end mb-4">
-        <Button asChild>
+        <Button variant="outline" asChild>
           <Link
             to="/admin/categories/create"
             className="flex items-center gap-1"
@@ -102,7 +102,7 @@ const DashCategory: React.FC = () => {
       ) : categories.length === 0 ? (
         <div className="text-center p-8 border border-dashed rounded-md">
           <p className="text-gray-500 mb-4">No categories yet</p>
-          <Button asChild>
+          <Button variant="outline" asChild>
             <Link to="/admin/categories/create">Create new category</Link>
           </Button>
         </div>
