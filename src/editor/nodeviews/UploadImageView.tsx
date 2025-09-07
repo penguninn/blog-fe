@@ -1,4 +1,3 @@
-import React from "react";
 import type { NodeViewProps } from "@tiptap/react";
 import { NodeViewWrapper } from "@tiptap/react";
 import { cn } from "@/lib/utils";
@@ -28,7 +27,8 @@ export default function UploadImageView({ node, selected, HTMLAttributes }: Node
   const sizes = (attrs.sizes as string) || undefined;
 
   // Extract class from HTMLAttributes without passing invalid DOM props like `srcset`
-  const htmlClass = (HTMLAttributes as any)?.class || (HTMLAttributes as any)?.className;
+  const htmlAttrs = HTMLAttributes as Record<string, unknown>;
+  const htmlClass = (htmlAttrs?.["class"] as string) || (htmlAttrs?.["className"] as string);
 
   return (
     <NodeViewWrapper
@@ -46,11 +46,11 @@ export default function UploadImageView({ node, selected, HTMLAttributes }: Node
         decoding="async"
         srcSet={srcSet}
         sizes={sizes}
-        data-public-id={attrs["data-public-id"] as any}
-        data-origin-url={attrs["data-origin-url"] as any}
+        data-public-id={(attrs["data-public-id"] as string | null) ?? undefined}
+        data-origin-url={(attrs["data-origin-url"] as string | null) ?? undefined}
         data-uploading={uploading ? "true" : undefined}
         data-progress={uploading ? String(progress) : undefined}
-        data-temp-id={attrs["data-temp-id"] as any}
+        data-temp-id={(attrs["data-temp-id"] as string | null) ?? undefined}
         className={cn("max-w-full h-auto rounded-sm", htmlClass, uploading && "opacity-80")}
         draggable
         data-drag-handle

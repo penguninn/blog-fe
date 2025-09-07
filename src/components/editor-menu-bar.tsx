@@ -24,7 +24,8 @@ const EditorMenuBar: React.FC<TiptapMenuBarProps> = ({ editor }) => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files || []);
       if (!editor || files.length === 0) return;
-      editor.commands.uploadImages(files);
+      type UploadCmds = { commands: { uploadImages: (files: File[]) => void } };
+      (editor as unknown as UploadCmds).commands.uploadImages(files);
       // reset input value to allow selecting same file again
       e.target.value = "";
     },

@@ -1,4 +1,5 @@
 import Image from "@tiptap/extension-image";
+import type { ImageOptions } from "@tiptap/extension-image";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import UploadImageView from "@/editor/nodeviews/UploadImageView";
@@ -9,17 +10,13 @@ import { Plugin } from "prosemirror-state";
 import { toast } from "sonner";
 import { normalizeAxiosError } from "@/utils/responseHandlers";
 
-export interface UploadImageOptions {
+export interface UploadImageOptions extends Partial<ImageOptions> {
   upload: (file: File, onProgress: (pct: number) => void) => Promise<AssetInfo>;
 }
 
-declare module "@tiptap/core" {
-  interface Commands<ReturnType> {
-    image: {
-      uploadImages: (files: File[]) => ReturnType;
-    };
-  }
-}
+// Note: We intentionally avoid TypeScript command augmentation here to prevent
+// conflicts with the built-in Image command typings. The runtime command
+// `uploadImages` is still registered and invoked via `editor.commands`.
 
 function genTempId() {
   return `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -69,7 +66,7 @@ export const UploadImage = Image.extend<UploadImageOptions>({
       ...this.parent?.(),
       uploadImages:
         (files: File[]) =>
-        ({ editor }) => {
+        ({ editor }: { editor: Editor }) => {
           const valid = files.filter((f) => validateImageFile(f).ok);
           const invalid = files.filter((f) => !validateImageFile(f).ok);
           if (invalid.length > 0) {
@@ -88,18 +85,20 @@ export const UploadImage = Image.extend<UploadImageOptions>({
     return [
       new Plugin({
         props: {
-          handlePaste(view, event) {
+          handlePaste(_view, event) {
             const files = Array.from(event.clipboardData?.files || []).filter((f) => f.type.startsWith("image/"));
             if (files.length === 0) return false;
             event.preventDefault();
-            editor.commands.uploadImages(files);
+            type UploadCmds = { commands: { uploadImages: (files: File[]) => void } };
+            (editor as unknown as UploadCmds).commands.uploadImages(files);
             return true;
           },
-          handleDrop(view, event) {
+          handleDrop(_view, event) {
             const files = Array.from(event.dataTransfer?.files || []).filter((f) => f.type.startsWith("image/"));
             if (files.length === 0) return false;
             event.preventDefault();
-            editor.commands.uploadImages(files);
+            type UploadCmds = { commands: { uploadImages: (files: File[]) => void } };
+            (editor as unknown as UploadCmds).commands.uploadImages(files);
             return true;
           },
         },
@@ -124,12 +123,15 @@ async function handleInsertAndUpload(
   editor
     .chain()
     .focus()
-    .setImage({
-      src: blobUrl,
-      alt: file.name || "image",
-      "data-uploading": true,
-      "data-progress": 0,
-      "data-temp-id": tempId,
+    .insertContent({
+      type: "image",
+      attrs: {
+        src: blobUrl,
+        alt: file.name || "image",
+        "data-uploading": true,
+        "data-progress": 0,
+        "data-temp-id": tempId,
+      },
     })
     .run();
 
@@ -167,7 +169,7 @@ async function handleInsertAndUpload(
       "data-temp-id": null,
     };
     editor.view.dispatch(editor.state.tr.setNodeMarkup(pos, undefined, newAttrs));
-  } catch (err: any) {
+  } catch (err: unknown) {
     const pos = findImagePosByTempId(editor, tempId);
     if (pos != null) {
       const nodeAtPos = editor.state.doc.nodeAt(pos);
@@ -177,7 +179,8 @@ async function handleInsertAndUpload(
       }
     }
     try {
-      const nerr = normalizeAxiosError(err);
+      import type { AxiosError } from "axios";
+      const nerr = normalizeAxiosError(err as AxiosError);
       // Friendly mapping for common cases matching backend behavior
       if (nerr.status === 413) {
         toast.error("File too large. Max size is 5MB");

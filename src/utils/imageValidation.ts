@@ -28,5 +28,8 @@ export function revokeObjectUrl(url?: string) {
   if (!url) return;
   try {
     URL.revokeObjectURL(url);
-  } catch {}
+  } catch {
+    // noop
+    void 0;
+  }
 }
