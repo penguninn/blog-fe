@@ -7,6 +7,8 @@ import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 // axiosInstance not needed here after switching to service
 import { postService } from "@/services/postService";
+import type { ApiEnvelope, Post } from "@/types";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 import { OrderedList } from "@tiptap/extension-ordered-list";
 import { BulletList } from "@tiptap/extension-bullet-list";
 import Blockquote from "@tiptap/extension-blockquote";
@@ -17,25 +19,7 @@ import { useTitle } from "@/hooks";
 
 type TextAlign = "left" | "center" | "right" | "justify" | null;
 
-interface CategoryType {
-  id: string;
-  name: string;
-}
-
-interface TagType {
-  id: string;
-  name: string;
-}
-
-interface PostData {
-  id: string;
-  title: string;
-  slug: string;
-  author: string;
-  category: CategoryType;
-  tags: TagType[];
-  contents: JSONContent[];
-}
+type PostData = Post & { contents: JSONContent[] };
 
 // Response type is normalized by axios interceptor when using services
 
@@ -58,9 +42,10 @@ const PostDetails: React.FC = () => {
     const fetchPost = async () => {
       try {
         const res = await postService.getBySlug(slug!);
-        const payload = (res as any).data?.data || (res as any).data || res;
-        const data = payload.data ? payload.data : payload;
-        setPost(data);
+        const data = normalizeEnvelope<Post>(
+          res.data as Post | ApiEnvelope<Post>
+        );
+        setPost(data as PostData);
       } catch (error) {
         console.error("Error fetching post:", error);
       }

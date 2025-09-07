@@ -9,6 +9,7 @@ import type { AssetInfo } from "@/types";
 import { Plugin } from "prosemirror-state";
 import { toast } from "sonner";
 import { normalizeAxiosError } from "@/utils/responseHandlers";
+import type { AxiosError } from "axios";
 
 export interface UploadImageOptions extends Partial<ImageOptions> {
   upload: (file: File, onProgress: (pct: number) => void) => Promise<AssetInfo>;
@@ -179,7 +180,6 @@ async function handleInsertAndUpload(
       }
     }
     try {
-      import type { AxiosError } from "axios";
       const nerr = normalizeAxiosError(err as AxiosError);
       // Friendly mapping for common cases matching backend behavior
       if (nerr.status === 413) {

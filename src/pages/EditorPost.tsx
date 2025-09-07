@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
+import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
@@ -27,6 +27,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Heading from "@tiptap/extension-heading";
 import { MultiSelect } from "@/components/multi-select";
 import { useTitle } from "@/hooks";
+import type { ApiEnvelope, Post as PostModel, PostCreateRequest, ContentBlock } from "@/types";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 
 interface CategoryType {
   id: string;
@@ -43,20 +45,9 @@ interface TagOption {
   value: string;
 }
 
-interface PostContent {
-  type: string;
-  content: JSONContent[];
-}
+// Post content derives from TipTap JSON
 
-interface PostType {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-  category: CategoryType;
-  tags: TagType[];
-  contents: PostContent[];
-}
+type PostType = PostModel;
 
 interface ApiResponse<T> {
   status: number;
@@ -70,7 +61,7 @@ const EditorPost: React.FC = () => {
   const [categories, setCategories] = useState<Array<CategoryType>>([]);
   const [tagOptions, setTagOptions] = useState<Array<TagOption>>([]);
   const [selectedTags, setSelectedTags] = useState<Array<string>>([]);
-  const [status, setStatus] = useState<string>("PUBLISHED");
+  const [status, setStatus] = useState<PostModel["status"]>("PUBLISHED");
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -150,11 +141,9 @@ const EditorPost: React.FC = () => {
 
         if (id) {
           const postResponse = await postService.getById(id);
-          const payload =
-            (postResponse as any).data?.data ||
-            (postResponse as any).data ||
-            postResponse;
-          const post: PostType = payload.data ? payload.data : payload;
+          const post = normalizeEnvelope<PostType>(
+            postResponse.data as PostType | ApiEnvelope<PostType>
+          );
 
           setTitle(post.title);
           setStatus(post.status);
@@ -183,7 +172,7 @@ const EditorPost: React.FC = () => {
     }
   };
 
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = (status: PostModel["status"]) => {
     setStatus(status);
   };
 
@@ -192,18 +181,22 @@ const EditorPost: React.FC = () => {
 
     try {
       const currentContent = editor?.getJSON();
-      const postData: any = {
-        title: title,
+      if (!category?.id) {
+        toast.error("Please select a category");
+        return;
+      }
+      const blocks: ContentBlock[] = currentContent?.content
+        ? [{ type: "doc", content: currentContent.content } as ContentBlock]
+        : [];
+
+      type PostPayload = Omit<PostCreateRequest, "slug"> & { slug?: string | null };
+      const postData: PostPayload = {
+        title,
         excerpt: undefined,
-        status: status,
-        categoryId: category?.id,
+        status,
+        categoryId: category.id,
         tagIds: selectedTags,
-        contents: [
-          {
-            type: "doc",
-            content: currentContent?.content,
-          },
-        ],
+        contents: blocks,
       };
 
       if (id) {
@@ -211,7 +204,7 @@ const EditorPost: React.FC = () => {
         toast.success("Update post successfully");
       } else {
         postData.slug = null;
-        await postService.create(postData);
+        await postService.create(postData as PostCreateRequest);
         toast.success("Create new post successfully");
       }
       navigate("/admin/posts");

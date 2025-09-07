@@ -7,14 +7,14 @@ import type {
   StandardApiResponse,
 } from "@/types";
 
-export const isApiEnvelope = <T = unknown>(
-  value: unknown
-): value is { data: T } => {
-  return !!value && typeof value === "object" && "data" in (value as any);
+export const isApiEnvelope = <T = unknown>(value: unknown): value is { data: T } => {
+  return !!value && typeof value === "object" && "data" in (value as Record<string, unknown>);
 };
 
 export function normalizeEnvelope<T>(payload: MaybeEnvelope<T>): T {
-  return isApiEnvelope<T>(payload) ? (payload as any).data : (payload as T);
+  return isApiEnvelope<T>(payload)
+    ? (payload as { data: T }).data
+    : (payload as T);
 }
 
 export function normalizePaginated<T>(
@@ -24,14 +24,12 @@ export function normalizePaginated<T>(
   return body;
 }
 
-export const isStandardResponse = <T = unknown>(
-  value: unknown
-): value is StandardApiResponse<T> => {
+export const isStandardResponse = <T = unknown>(value: unknown): value is StandardApiResponse<T> => {
   return (
     !!value &&
     typeof value === "object" &&
-    "success" in (value as any) &&
-    "statusCode" in (value as any)
+    "success" in (value as Record<string, unknown>) &&
+    "statusCode" in (value as Record<string, unknown>)
   );
 };
 
@@ -48,7 +46,7 @@ export function toLegacyFromStandard<T>(payload: StandardApiResponse<T>) {
         size,
         totalPages,
         totalElements,
-        contents: (Array.isArray(data) ? data : []) as any[],
+        contents: Array.isArray(data) ? (data as unknown[]) : [],
       },
     };
   }

@@ -41,7 +41,7 @@ export interface GetPostsByTagParams
 
 export interface PostCreateRequest {
   title: string;
-  slug: string;
+  slug: string | null;
   excerpt?: string | null;
   status: PostStatus;
   categoryId: string;
@@ -49,7 +49,9 @@ export interface PostCreateRequest {
   contents: ContentBlock[];
 }
 
-export interface PostUpdateRequest extends PostCreateRequest {}
+export type PostUpdateRequest = Omit<PostCreateRequest, "slug"> & {
+  slug?: string | null;
+};
 
 export interface SimpleSearchParams
   extends PaginationParams,

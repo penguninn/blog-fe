@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { PaginationCustom } from "@/components/pagination-custom";
 import { useTitle } from "@/hooks";
+import type { ApiEnvelope, PaginatedResponse, Post } from "@/types";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 
 interface CategoryType {
   id: string;
@@ -43,8 +45,9 @@ const DashPost: React.FC = () => {
         sortBy: "CREATED_AT",
         direction: "DESC",
       });
-      const payload = (res as any).data?.data || (res as any).data || res;
-      const data = payload.data ? payload.data : payload;
+      const data = normalizeEnvelope<PaginatedResponse<Post>>(
+        res.data as PaginatedResponse<Post> | ApiEnvelope<PaginatedResponse<Post>>
+      );
       if (data && data.contents) {
         setPosts(data.contents);
         setTotalPages(data.totalPages ?? 0);

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import CardPost from "@/components/card-post";
 import axiosInstance from "@/api/axiosInstance";
 import { postService } from "@/services/postService";
+import type { PaginatedResponse, Post } from "@/types";
+import type { AxiosResponse } from "axios";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useLocation, useParams } from "react-router-dom";
@@ -38,7 +41,7 @@ const ListPost = () => {
       setLoading(true);
       try {
         const page = Math.max(currentPage, 1);
-        let loader: Promise<any> = postService.getAll({ page, size: 10 });
+        let loader: Promise<AxiosResponse<PaginatedResponse<Post>>> = postService.getAll({ page, size: 10 });
 
         if (location.pathname.includes("/posts/top-posts")) {
           loader = postService.getAll({
@@ -91,8 +94,9 @@ const ListPost = () => {
         }
 
         const res = await loader;
-        const payload = (res as any).data?.data || (res as any).data || res;
-        const data = payload.data ? payload.data : payload;
+        const data = normalizeEnvelope<PaginatedResponse<Post>>(
+          res.data as PaginatedResponse<Post> | import("@/types").ApiEnvelope<PaginatedResponse<Post>>
+        );
         if (data && data.contents) {
           setPosts(data.contents);
           setTotalPages(data.totalPages);

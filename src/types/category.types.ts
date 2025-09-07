@@ -9,4 +9,4 @@ export interface CategoryCreateRequest {
   description?: string | null;
 }
 
-export interface CategoryUpdateRequest extends CategoryCreateRequest {}
+export type CategoryUpdateRequest = CategoryCreateRequest;

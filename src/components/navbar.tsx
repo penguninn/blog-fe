@@ -2,6 +2,8 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axiosInstance from "@/api/axiosInstance";
 import { postService } from "@/services/postService";
+import type { ApiEnvelope, PaginatedResponse, Post } from "@/types";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -103,8 +105,9 @@ const Navbar = () => {
         page: 1,
         size: 5,
       });
-      const payload = (res as any).data?.data || (res as any).data || res;
-      const data = payload.data ? payload.data : payload;
+      const data = normalizeEnvelope<PaginatedResponse<Post>>(
+        res.data as PaginatedResponse<Post> | ApiEnvelope<PaginatedResponse<Post>>
+      );
       const contents = data?.contents;
       setSearchResults(Array.isArray(contents) ? contents : []);
     } catch (error) {

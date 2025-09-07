@@ -11,4 +11,4 @@ export interface TagCreateRequest {
   color?: string | null;
 }
 
-export interface TagUpdateRequest extends TagCreateRequest {}
+export type TagUpdateRequest = TagCreateRequest;

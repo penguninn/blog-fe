@@ -70,4 +70,4 @@ export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "SCHEDULED";
 
 export type PostSortBy = "CREATED_AT" | "TITLE" | "MODIFIED_AT" | (string & {});
 
-export interface ContentBlock extends JSONContent {}
+export type ContentBlock = JSONContent;

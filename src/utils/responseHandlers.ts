@@ -2,7 +2,7 @@ import type { AxiosError } from "axios";
 import type { ProblemDetails, StandardApiResponse } from "@/types";
 
 export const isProblemDetails = (value: unknown): value is ProblemDetails => {
-  return !!value && typeof value === "object" && "type" in (value as any);
+  return !!value && typeof value === "object" && "type" in (value as Record<string, unknown>);
 };
 
 export interface NormalizedError {
@@ -26,20 +26,20 @@ export function normalizeAxiosError(
       title: payload.title,
       detail: payload.detail,
       type: payload.type,
-      errors: payload.errors as any,
+      errors: payload.errors,
       raw: payload,
     };
   }
 
-  if (payload && typeof payload === "object" && "error" in (payload as any)) {
-    const p = (payload as any).error as ProblemDetails | undefined;
+  if (payload && typeof payload === "object" && "error" in (payload as Record<string, unknown>)) {
+    const p = (payload as StandardApiResponse<unknown>).error as ProblemDetails | undefined;
     if (p && isProblemDetails(p)) {
       return {
-        status: (payload as any).statusCode ?? p.status ?? status,
+        status: (payload as StandardApiResponse<unknown>).statusCode ?? p.status ?? status,
         title: p.title,
         detail: p.detail,
         type: p.type,
-        errors: p.errors as any,
+        errors: p.errors,
         raw: payload,
       };
     }

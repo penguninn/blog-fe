@@ -1,17 +1,24 @@
 import { useKeycloak } from "@react-keycloak/web";
 import { useMemo } from "react";
+import type {
+  KeycloakLoginOptions,
+  KeycloakLogoutOptions,
+  KeycloakRegisterOptions,
+} from "keycloak-js";
 
 export const useKeycloakAuth = () => {
   const { keycloak, initialized } = useKeycloak();
 
   const auth = useMemo(() => {
-    const token = keycloak?.tokenParsed as any | undefined;
-    const realmRoles: string[] = Array.isArray(token?.realm_access?.roles)
-      ? token.realm_access.roles
+    type Token = {
+      realm_access?: { roles?: string[] };
+      resource_access?: Record<string, { roles?: string[] }>;
+    } & Record<string, unknown>;
+    const token = keycloak?.tokenParsed as Token | undefined;
+    const realmRoles: string[] = token?.realm_access?.roles ?? [];
+    const resourceRoles: string[] = token?.resource_access
+      ? Object.values(token.resource_access).flatMap((r) => r.roles ?? [])
       : [];
-    const resourceRoles: string[] = Object.values(
-      token?.resource_access || {}
-    ).flatMap((r: any) => r?.roles || []);
     const allRolesLower = new Set<string>(
       [...realmRoles, ...resourceRoles].map((r) => String(r).toLowerCase())
     );
@@ -36,9 +43,9 @@ export const useKeycloakAuth = () => {
       hasResourceRole: (role: string, resource?: string) =>
         Boolean(keycloak?.hasResourceRole(role, resource)),
 
-      login: (options?: unknown) => keycloak?.login(options as any),
-      logout: (options?: unknown) => keycloak?.logout(options as any),
-      register: (options?: unknown) => keycloak?.register(options as any),
+      login: (options?: KeycloakLoginOptions) => keycloak?.login(options),
+      logout: (options?: KeycloakLogoutOptions) => keycloak?.logout(options),
+      register: (options?: KeycloakRegisterOptions) => keycloak?.register(options),
       accountManagement: () => keycloak?.accountManagement(),
 
       token: keycloak?.token,

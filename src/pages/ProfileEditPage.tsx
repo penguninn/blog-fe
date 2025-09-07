@@ -18,6 +18,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useTitle } from "@/hooks";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
+import type { ApiEnvelope } from "@/types";
 
 type ProfileForm = {
   displayName: string;
@@ -62,8 +64,9 @@ const ProfileEditPage = () => {
     (async () => {
       try {
         const res = await userService.getCurrent();
-        const payload = (res as any).data?.data || (res as any).data || res;
-        const data: UserProfile = payload.data ? payload.data : payload;
+        const data: UserProfile = normalizeEnvelope<UserProfile>(
+          res.data as UserProfile | ApiEnvelope<UserProfile>
+        );
         if (!mounted) return;
         setProfile(data);
         setPf(mapProfileToForm(data));
@@ -71,7 +74,7 @@ const ProfileEditPage = () => {
           username: data.username,
           email: data.pendingEmail || data.email,
         });
-      } catch (e) {
+      } catch {
         toast.error("Failed to load profile");
       } finally {
         if (mounted) setLoading(false);
@@ -109,12 +112,13 @@ const ProfileEditPage = () => {
     };
     try {
       const res = await userService.updateCurrent(payload);
-      const data = (res as any).data?.data || (res as any).data || res;
-      const updated: UserProfile = data.data ? data.data : data;
+      const updated: UserProfile = normalizeEnvelope<UserProfile>(
+        res.data as UserProfile | ApiEnvelope<UserProfile>
+      );
       setProfile(updated);
       setPf(mapProfileToForm(updated));
       toast.success("Profile updated");
-    } catch (e: any) {
+    } catch {
       toast.error("Failed to update profile");
     } finally {
       setSavingProfile(false);
@@ -137,16 +141,16 @@ const ProfileEditPage = () => {
         await userService.updateCurrentEmail({ email: emailToUpdate });
       }
       const refreshed = await userService.getCurrent();
-      const payload =
-        (refreshed as any).data?.data || (refreshed as any).data || refreshed;
-      const data: UserProfile = payload.data ? payload.data : payload;
+      const data: UserProfile = normalizeEnvelope<UserProfile>(
+        refreshed.data as UserProfile | ApiEnvelope<UserProfile>
+      );
       setProfile(data);
       setAf({
         username: data.username,
         email: data.pendingEmail || data.email,
       });
       toast.success("Account updated");
-    } catch (e) {
+    } catch {
       toast.error("Failed to update account");
     } finally {
       setSavingAccount(false);

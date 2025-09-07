@@ -2,9 +2,9 @@ import keycloak from "@/utils/keycloakConfig";
 
 export const authService = {
   login: (options?: Parameters<typeof keycloak.login>[0]) =>
-    keycloak.login(options as any),
+    keycloak.login(options),
   logout: (options?: Parameters<typeof keycloak.logout>[0]) =>
-    keycloak.logout(options as any),
+    keycloak.logout(options),
   account: () => keycloak.accountManagement(),
   refresh: (minValidity = 30) => keycloak.updateToken(minValidity),
   getToken: () => keycloak.token ?? null,

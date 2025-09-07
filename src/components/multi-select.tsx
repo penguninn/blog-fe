@@ -79,7 +79,7 @@ export const MultiSelect = React.forwardRef<
       animation = 0,
       maxCount = 3,
       modalPopover = false,
-      asChild = false,
+      // asChild is not used; keep prop for API compatibility but avoid unused var
       className,
       ...props
     },

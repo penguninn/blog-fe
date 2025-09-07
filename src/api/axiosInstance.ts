@@ -46,9 +46,11 @@ axiosInstance.interceptors.response.use(
     try {
       const payload = response.data;
       if (isStandardResponse(payload)) {
-        response.data = toLegacyFromStandard(payload as any);
+        response.data = toLegacyFromStandard(payload);
       }
-    } catch (e) {}
+    } catch {
+      // Swallow transformation issues; return raw response
+    }
     return response;
   },
   async (error) => {
@@ -63,14 +65,18 @@ axiosInstance.interceptors.response.use(
           );
         }
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
 
     if (error.response?.status === 401) {
       try {
         if (keycloak?.authenticated) {
           await keycloak.logout();
         }
-      } catch {}
+      } catch {
+        // ignore
+      }
     }
     return Promise.reject(error);
   }

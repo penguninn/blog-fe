@@ -28,7 +28,7 @@ export const assetService = {
       }
     );
 
-    const data = normalizeEnvelope<AssetInfo>(res.data as any);
+    const data = normalizeEnvelope<AssetInfo>(res.data as AssetInfo | import("@/types").ApiEnvelope<AssetInfo>);
     // Final tick to 100 after server confirms
     options.onProgress?.(100);
     return data;
@@ -36,4 +36,3 @@ export const assetService = {
 };
 
 export type AssetService = typeof assetService;
-

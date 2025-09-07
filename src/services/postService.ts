@@ -16,7 +16,7 @@ const ensurePage1 = <T extends { page?: number; size?: number }>(
 ): T | undefined => {
   if (!params) return { page: 1 } as T;
   const p = { ...params };
-  if (typeof p.page !== "number" || p.page < 1) p.page = 1 as any;
+  if (typeof p.page !== "number" || p.page < 1) p.page = 1;
   return p;
 };
 

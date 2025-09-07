@@ -11,6 +11,8 @@ import {
 } from "./ui/dropdown-menu";
 import { LogOut, LogIn, User, UserPen, LayoutDashboard } from "lucide-react";
 import { userService, type UserProfile } from "@/services/userService";
+import type { ApiEnvelope } from "@/types";
+import { normalizeEnvelope } from "@/utils/apiHelpers";
 import { useKeycloakAuth } from "@/hooks/useKeycloak";
 
 function ProfileCustom() {
@@ -29,9 +31,11 @@ function ProfileCustom() {
       try {
         const res = await userService.getCurrent();
         if (!mounted) return;
-        const payload = (res as any).data?.data || (res as any).data || res;
-        setProfile(payload.data ? payload.data : payload);
-      } catch (e) {
+        const profile = normalizeEnvelope<UserProfile>(
+          res.data as UserProfile | ApiEnvelope<UserProfile>
+        );
+        setProfile(profile);
+      } catch {
         if (!mounted) return;
         setError("Failed to load profile");
       } finally {
@@ -62,11 +66,14 @@ function ProfileCustom() {
     login?.({ redirectUri: window.location.href });
   };
 
-  const displayName =
-    profile?.displayName ||
-    (tokenUser as any)?.preferred_username ||
-    (tokenUser as any)?.email ||
-    "User";
+  const tu = tokenUser as Record<string, unknown> | undefined;
+  const preferred =
+    typeof tu?.["preferred_username"] === "string"
+      ? (tu["preferred_username"] as string)
+      : undefined;
+  const email =
+    typeof tu?.["email"] === "string" ? (tu["email"] as string) : undefined;
+  const displayName = profile?.displayName || preferred || email || "User";
   const avatarUrl = profile?.avatarUrl || null;
 
   return (
