@@ -10,8 +10,10 @@ import { Input } from "@/components/ui/input";
 import OrderedList from "@tiptap/extension-ordered-list";
 import BulletList from "@tiptap/extension-bullet-list";
 import CodeBlock from "@tiptap/extension-code-block";
-import Image from "@tiptap/extension-image";
+// import Image from "@tiptap/extension-image";
+import { UploadImage } from "@/editor/extensions/UploadImage";
 import axiosInstance from "@/api/axiosInstance";
+import { assetService } from "@/services/assetService";
 import { postService } from "@/services/postService";
 import {
   Select,
@@ -112,10 +114,12 @@ const EditorPost: React.FC = () => {
           class: "bg-neutral-300 dark:bg-neutral-700 p-2 rounded-md",
         },
       }),
-      Image.configure({
+      UploadImage.configure({
         HTMLAttributes: {
-          class: "w-full my-5 border",
-          allowBase64: true,
+          class: "w-full my-5 border rounded-sm overflow-hidden",
+        },
+        upload: async (file, onProgress) => {
+          return assetService.uploadImage(file, { onProgress });
         },
       }),
       Underline,

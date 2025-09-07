@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
   POSTS_BY_CATEGORY: "/posts/categories",
   POSTS_BY_TAG: "/posts/tags",
   POSTS_SEARCH: "/posts/search",
+  ASSETS_UPLOAD: "/assets/upload",
   // Legacy or unsupported endpoints removed from usage; constants kept minimal
 
   CATEGORIES: "/categories",

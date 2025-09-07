@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { Editor } from "@tiptap/react";
 import { Button } from "./ui/button";
 import {
@@ -14,13 +14,22 @@ interface TiptapMenuBarProps {
 }
 
 const EditorMenuBar: React.FC<TiptapMenuBarProps> = ({ editor }) => {
-  const addImage = useCallback(() => {
-    const url = window.prompt("URL");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const onFilesPicked = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (!editor || files.length === 0) return;
+      editor.commands.uploadImages(files);
+      // reset input value to allow selecting same file again
+      e.target.value = "";
+    },
+    [editor]
+  );
 
   if (!editor) {
     return null;
@@ -208,7 +217,15 @@ const EditorMenuBar: React.FC<TiptapMenuBarProps> = ({ editor }) => {
         "Quote"
       </Button>
 
-      <Button variant="outline" type="button" onClick={addImage}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={onFilesPicked}
+      />
+      <Button variant="outline" type="button" onClick={openFilePicker}>
         Image
       </Button>
 
