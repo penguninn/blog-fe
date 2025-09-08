@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import axiosInstance from "@/api/axiosInstance";
 import { postService } from "@/services/postService";
-import type { ApiEnvelope, PaginatedResponse, Post } from "@/types";
+import { categoryService } from "@/services/categoryService";
+import type { ApiEnvelope, PaginatedResponse, Post, Category } from "@/types";
 import { normalizeEnvelope } from "@/utils/apiHelpers";
 // NavigationMenu currently unused; keep minimal navbar
 import { ModeToggle } from "./mode-toggle";
@@ -21,10 +21,7 @@ import { Input } from "./ui/input";
 import { toast } from "sonner";
 import ProfileCustom from "./profile-custom";
 
-interface CategoryType {
-    id: string;
-    name: string;
-}
+// Using shared Category type
 
 interface PostType {
     id: string;
@@ -32,14 +29,8 @@ interface PostType {
     slug: string;
 }
 
-interface ApiResponse<T> {
-    status: number;
-    message: string;
-    data: T;
-}
-
 const Navbar = () => {
-    const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<PostType[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -52,21 +43,18 @@ const Navbar = () => {
         if (fetchedCategoriesRef.current) return;
         fetchedCategoriesRef.current = true;
 
-        const fetchCategories = async () => {
-            try {
-                const response =
-                    await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories");
-                if (response.status === 200) {
-                    const payload = response.data?.data;
-                    setCategories(Array.isArray(payload) ? payload : []);
-                } else {
-                    toast.error("Cannot fetch categories");
-                }
-            } catch (error) {
-                console.warn("Error fetching categories:", error);
-                toast.error("Cannot fetch categories");
-            }
-        };
+    const fetchCategories = async () => {
+      try {
+        const res = await categoryService.getAll();
+        const data = normalizeEnvelope<Category[]>(
+          res.data as Category[] | import("@/types").ApiEnvelope<Category[]>
+        );
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.warn("Error fetching categories:")
+        toast.error("Cannot fetch categories");
+      }
+    };
         fetchCategories();
     }, []);
 
@@ -89,7 +77,6 @@ const Navbar = () => {
                 .replace(/[đĐ]/g, "d")
                 .replace(/[^a-z0-9\s]/g, "")
                 .replace(/\s+/g, "-");
-            na;
 
             const res = await postService.search({
                 query: normalizedQuery,

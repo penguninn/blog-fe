@@ -6,7 +6,6 @@ import type { PaginatedResponse, Post } from "@/types";
 import type { AxiosResponse } from "axios";
 import { normalizeEnvelope } from "@/utils/apiHelpers";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useLocation, useParams } from "react-router-dom";
 import { PaginationCustom } from "@/components/pagination-custom";
 import { useTitle } from "@/hooks";
