@@ -20,8 +20,6 @@ const EditorPost = lazy(() => import("./pages/EditorPost"));
 const DashCategory = lazy(() => import("./pages/DashCategory"));
 const CategoryEditor = lazy(() => import("./pages/EditorCategory"));
 
-const DashTag = lazy(() => import("./pages/DashTag"));
-const TagEditor = lazy(() => import("./pages/EditorTag"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -40,7 +38,6 @@ const AppRoutes = () => {
           <Route path="/posts/top-posts" element={<ListPost />} />
           <Route path="/posts/new-posts" element={<ListPost />} />
           <Route path="/category/:id" element={<ListPost />} />
-          <Route path="/tag/:id" element={<ListPost />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -78,9 +75,6 @@ const AppRoutes = () => {
             element={<CategoryEditor />}
           />
 
-          <Route path="/admin/tags" element={<DashTag />} />
-          <Route path="/admin/tags/create" element={<TagEditor />} />
-          <Route path="/admin/tags/:id/edit" element={<TagEditor />} />
         </Route>
       </Routes>
     </Suspense>

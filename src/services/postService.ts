@@ -3,7 +3,6 @@ import { API_ENDPOINTS } from "@/constants";
 import type {
   GetAllPostsParams,
   GetPostsByCategoryParams,
-  GetPostsByTagParams,
   PaginatedResponse,
   Post,
   PostCreateRequest,
@@ -49,11 +48,6 @@ export const postService = {
       { params: ensurePage1(params) }
     ),
 
-  getByTag: (tagId: string, params?: GetPostsByTagParams) =>
-    axiosInstance.get<PaginatedResponse<Post>>(
-      `${API_ENDPOINTS.POSTS_BY_TAG}/${encodeURIComponent(tagId)}/posts`,
-      { params: ensurePage1(params) }
-    ),
 
   search: (params: SimpleSearchParams) =>
     axiosInstance.get<PaginatedResponse<Post>>(API_ENDPOINTS.POSTS_SEARCH, {

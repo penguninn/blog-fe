@@ -1,4 +1,4 @@
-import { Settings, FileText, Tag, Plus, Folder, LogOut } from "lucide-react";
+import { Settings, FileText, Plus, Folder, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useKeycloakAuth } from "@/hooks/useKeycloak";
 
@@ -69,22 +69,6 @@ export function AppSidebar() {
         {
           title: "Editor category",
           path: "/admin/categories/create",
-          icon: <Plus className="mr-2 h-4 w-4" />,
-        },
-      ],
-    },
-    {
-      title: "Tags",
-      icon: <Tag className="mr-2 h-4 w-4" />,
-      children: [
-        {
-          title: "List tags",
-          path: "/admin/tags",
-          icon: <Tag className="mr-2 h-4 w-4" />,
-        },
-        {
-          title: "Editor tag",
-          path: "/admin/tags/create",
           icon: <Plus className="mr-2 h-4 w-4" />,
         },
       ],

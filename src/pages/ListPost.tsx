@@ -12,16 +12,15 @@ import { PaginationCustom } from "@/components/pagination-custom";
 import { useTitle } from "@/hooks";
 import { toast } from "sonner";
 
-interface TagType {
-  id: string;
-  name: string;
-}
+
+import type { ContentBlock } from "@/types";
 
 interface PostType {
   id: string;
   title: string;
   slug: string;
-  tags: TagType[];
+  contents?: ContentBlock[]; // available when using postService
+  category: { id: string; name: string };
 }
 
 const ListPost = () => {
@@ -76,21 +75,6 @@ const ListPost = () => {
           } catch (error) {
             console.warn("Error fetching category:", error);
           }
-        } else if (location.pathname.includes("/tag/") && id) {
-          loader = postService.getByTag(id, {
-            page,
-            size: 10,
-            sortBy: "TITLE",
-            direction: "DESC",
-          });
-          try {
-            const tagResponse = await axiosInstance.get(`/tags/${id}`);
-            if (tagResponse.data && tagResponse.data.data) {
-              setTitle(`Tag: ${tagResponse.data.data.name}`);
-            }
-          } catch (error) {
-            console.warn("Error fetching tag:", error);
-          }
         }
 
         const res = await loader;
@@ -136,8 +120,9 @@ const ListPost = () => {
                 key={post.id}
                 slug={post.slug}
                 title={post.title}
-                description={"No description"}
-                tags={post.tags}
+                contents={post.contents}
+                category={post.category?.name}
+                categoryUrl={`/category/${post.category?.id}`}
               />
             ))}
             <PaginationCustom

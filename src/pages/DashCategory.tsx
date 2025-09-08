@@ -28,6 +28,7 @@ import { useTitle } from "@/hooks";
 interface CategoryType {
   id: string;
   name: string;
+  description: string;
 }
 
 interface ApiResponse {
@@ -113,6 +114,7 @@ const DashCategory: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -120,6 +122,9 @@ const DashCategory: React.FC = () => {
               {categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {category.description}
+                  </TableCell>
                   <TableCell className="flex justify-end gap-2">
                     <Link to={`/admin/categories/${category.id}/edit`}>
                       <Button variant="outline" size="icon">

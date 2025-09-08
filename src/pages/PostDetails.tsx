@@ -240,7 +240,7 @@ const PostDetails: React.FC = () => {
   return (
     <div className="w-full h-full max-w-6xl mx-auto grid grid-cols-12 gap-4 p-2">
       <div
-        className="col-span-12 lg:col-span-8 border-x border-dashed p-5"
+        className="col-span-12 lg:col-span-8 border-x border-dashed border-neutral-300 p-5"
         ref={contentRef}
       >
         <Label
@@ -249,16 +249,6 @@ const PostDetails: React.FC = () => {
         >
           {post?.title}
         </Label>
-        <div className="flex gap-2">
-          {post?.tags.map((tag) => (
-            <div
-              key={tag.id}
-              className="text-sm min-w-16 text-center text-gray-500 border rounded-md px-2 bg-gray-200 dark:bg-neutral-800"
-            >
-              {tag.name}
-            </div>
-          ))}
-        </div>
         <EditorContent editor={editor} />
       </div>
       <div className="col-span-4 hidden lg:block border-e border-dashed p-5">

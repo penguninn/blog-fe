@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "@/api/axiosInstance";
 import { toast } from "sonner";
@@ -14,11 +15,13 @@ interface ApiResponse {
 
 interface Category {
   name: string;
+  description?: string | null;
 }
 
 const CategoryEditor: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [description, setDescription] = useState<string>("");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -35,6 +38,7 @@ const CategoryEditor: React.FC = () => {
           if (response.data.status === 200 && response.data.data) {
             const categoryData = response.data.data as Category;
             setName(categoryData.name);
+            setDescription(categoryData.description ?? "");
           } else {
             toast.error("Cannot load category information");
             navigate("/admin/categories");
@@ -63,6 +67,8 @@ const CategoryEditor: React.FC = () => {
     setLoading(true);
     const categoryData = {
       name: name.trim(),
+      // Only send description if provided; backend allows up to 200 chars
+      description: description.trim() ? description.trim() : undefined,
     };
 
     try {
@@ -118,6 +124,19 @@ const CategoryEditor: React.FC = () => {
             disabled={loading}
             required
           />
+        </div>
+        <div className="mb-4">
+          <Textarea
+            placeholder="Description (optional, up to 200 characters)"
+            onChange={(e) => setDescription(e.target.value)}
+            value={description}
+            maxLength={200}
+            className="rounded-sm focus-visible:ring-0 min-h-24"
+            disabled={loading}
+          />
+          <div className="mt-1 text-xs text-muted-foreground text-right">
+            {description.length}/200
+          </div>
         </div>
         <Button variant="outline" type="submit" className="w-full" disabled={loading}>
           {loading ? "Loading..." : "Save"}

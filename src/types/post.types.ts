@@ -7,7 +7,6 @@ import type {
   PostSortBy,
 } from "./api.types";
 import type { Category } from "./category.types";
-import type { Tag } from "./tag.types";
 
 export interface Post {
   id: string;
@@ -21,7 +20,6 @@ export interface Post {
   publishedAt?: string | null;
   scheduledFor?: string | null;
   category: Category;
-  tags: Tag[];
   contents: ContentBlock[];
   createdDate?: string;
   modifiedDate?: string;
@@ -35,9 +33,6 @@ export interface GetPostsByCategoryParams
   extends PaginationParams,
     SortingParams<PostSortBy> {}
 
-export interface GetPostsByTagParams
-  extends PaginationParams,
-    SortingParams<PostSortBy> {}
 
 export interface PostCreateRequest {
   title: string;
@@ -45,7 +40,6 @@ export interface PostCreateRequest {
   excerpt?: string | null;
   status: PostStatus;
   categoryId: string;
-  tagIds: string[];
   contents: ContentBlock[];
 }
 

@@ -15,10 +15,6 @@ interface CategoryType {
   name: string;
 }
 
-interface TagType {
-  id: string;
-  name: string;
-}
 
 interface PostType {
   id: string;
@@ -26,7 +22,6 @@ interface PostType {
   slug: string;
   status: string;
   category: CategoryType;
-  tags: TagType[];
 }
 
 const DashPost: React.FC = () => {
@@ -96,7 +91,6 @@ const DashPost: React.FC = () => {
               slug={post.slug}
               title={post.title}
               status={post.status}
-              tags={post.tags}
               onDeleteSuccess={handleDeleteSuccess}
             />
           ))}

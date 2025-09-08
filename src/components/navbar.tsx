@@ -30,16 +30,11 @@ interface CategoryType {
   name: string;
 }
 
-interface TagType {
-  id: string;
-  name: string;
-}
 
 interface PostType {
   id: string;
   title: string;
   slug: string;
-  tags: TagType[];
 }
 
 interface ApiResponse<T> {
@@ -212,11 +207,6 @@ const Navbar = () => {
                         <div className="font-medium text-foreground">
                           {post.title}
                         </div>
-                        {Array.isArray(post.tags) && post.tags.length > 0 && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {post.tags.map((tag) => tag.name).join(", ")}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>

@@ -25,7 +25,6 @@ import {
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
 import Heading from "@tiptap/extension-heading";
-import { MultiSelect } from "@/components/multi-select";
 import { useTitle } from "@/hooks";
 import type { ApiEnvelope, Post as PostModel, PostCreateRequest, ContentBlock } from "@/types";
 import { normalizeEnvelope } from "@/utils/apiHelpers";
@@ -35,15 +34,6 @@ interface CategoryType {
   name: string;
 }
 
-interface TagType {
-  id: string;
-  name: string;
-}
-
-interface TagOption {
-  label: string;
-  value: string;
-}
 
 // Post content derives from TipTap JSON
 
@@ -59,8 +49,6 @@ const EditorPost: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [category, setCategory] = useState<CategoryType>();
   const [categories, setCategories] = useState<Array<CategoryType>>([]);
-  const [tagOptions, setTagOptions] = useState<Array<TagOption>>([]);
-  const [selectedTags, setSelectedTags] = useState<Array<string>>([]);
   const [status, setStatus] = useState<PostModel["status"]>("PUBLISHED");
 
   const { id } = useParams<{ id: string }>();
@@ -131,13 +119,6 @@ const EditorPost: React.FC = () => {
           await axiosInstance.get<ApiResponse<CategoryType[]>>("/categories");
         setCategories(categoriesResponse.data.data);
 
-        const tagsResponse =
-          await axiosInstance.get<ApiResponse<TagType[]>>("/tags");
-        const options = tagsResponse.data.data.map((tag) => ({
-          label: tag.name,
-          value: tag.id,
-        }));
-        setTagOptions(options);
 
         if (id) {
           const postResponse = await postService.getById(id);
@@ -149,8 +130,6 @@ const EditorPost: React.FC = () => {
           setStatus(post.status);
           setCategory(post.category);
 
-          const tagIds = post.tags.map((tag) => tag.id);
-          setSelectedTags(tagIds);
 
           if (post.contents && post.contents.length > 0) {
             editor?.commands.setContent(post.contents[0]);
@@ -195,7 +174,6 @@ const EditorPost: React.FC = () => {
         excerpt: undefined,
         status,
         categoryId: category.id,
-        tagIds: selectedTags,
         contents: blocks,
       };
 
@@ -226,18 +204,6 @@ const EditorPost: React.FC = () => {
             className="rounded-sm focus-visible:ring-0"
             placeholder="Title"
             required
-          />
-        </div>
-        <div className="mb-4">
-          <MultiSelect
-            options={tagOptions}
-            onValueChange={setSelectedTags}
-            defaultValue={selectedTags}
-            value={selectedTags}
-            placeholder="Select tags"
-            animation={2}
-            maxCount={10}
-            className="border-neutral-200 dark:border-neutral-600"
           />
         </div>
         <div className="mb-4 w-full flex justify-between items-center gap-3">

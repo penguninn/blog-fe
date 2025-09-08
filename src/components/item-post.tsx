@@ -23,17 +23,12 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-interface TagType {
-  id: string;
-  name: string;
-}
 
 interface ItemPostProps {
   id: string;
   slug: string;
   title: string;
   status: string;
-  tags: TagType[];
   onDeleteSuccess?: () => void;
 }
 
@@ -44,7 +39,6 @@ const ItemPost = ({
   slug,
   title,
   status,
-  tags,
   onDeleteSuccess,
 }: ItemPostProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -77,14 +71,6 @@ const ItemPost = ({
           <div className="flex gap-3 items-end">
             <div className="text-2xl font-bold">{title}</div>
             <div className="flex gap-2">
-              {tags?.map((tag) => (
-                <div
-                  key={tag.id}
-                  className="text-sm text-gray-500 border rounded-md px-2 bg-gray-200 dark:bg-neutral-800"
-                >
-                  {tag.name}
-                </div>
-              ))}
             </div>
           </div>
           <div className="text-sm text-gray-400">{status}</div>
