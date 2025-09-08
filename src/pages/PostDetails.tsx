@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useEditor, JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
-// axiosInstance not needed here after switching to service
 import { postService } from "@/services/postService";
 import type { ApiEnvelope, Post } from "@/types";
 import { normalizeEnvelope } from "@/utils/apiHelpers";
@@ -16,25 +15,18 @@ import CodeBlock from "@tiptap/extension-code-block";
 import { Label } from "@/components/ui/label";
 import Heading from "@tiptap/extension-heading";
 import { useTitle } from "@/hooks";
-
-type TextAlign = "left" | "center" | "right" | "justify" | null;
+import { rehype } from "rehype";
+import rehypeToc from "@jsdevtools/rehype-toc";
+import rehypeSlug from "rehype-slug";
 
 type PostData = Post & { contents: JSONContent[] };
 
-// Response type is normalized by axios interceptor when using services
-
-interface HeadingItem {
-  id: string;
-  level: number;
-  text: string;
-  children?: HeadingItem[];
-}
-
 const PostDetails: React.FC = () => {
   const [post, setPost] = useState<PostData | null>(null);
-  const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const { slug } = useParams<{ slug: string }>();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHtml, setContentHtml] = useState<string>("");
+  const [tocHtml, setTocHtml] = useState<string>("");
+  const [mobileTocOpen, setMobileTocOpen] = useState<boolean>(false);
 
   useTitle(post?.title || "Loading...");
 
@@ -52,72 +44,6 @@ const PostDetails: React.FC = () => {
     };
     fetchPost();
   }, [slug]);
-
-  const generateId = (text: string): string => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-");
-  };
-
-  const extractHeadings = () => {
-    if (!contentRef.current) return;
-
-    const headingElements = contentRef.current.querySelectorAll(
-      "h1, h2, h3, h4, h5, h6"
-    );
-    const flatHeadings: HeadingItem[] = [];
-
-    headingElements.forEach((el, index) => {
-      const level = parseInt(el.tagName.substring(1));
-      const text = el.textContent || `Heading ${index + 1}`;
-      const id = generateId(text);
-
-      el.id = id;
-
-      flatHeadings.push({
-        id,
-        level,
-        text,
-      });
-    });
-
-    const rootHeadings: HeadingItem[] = [];
-    const stack: HeadingItem[] = [];
-
-    flatHeadings.forEach((heading) => {
-      while (
-        stack.length > 0 &&
-        stack[stack.length - 1].level >= heading.level
-      ) {
-        stack.pop();
-      }
-
-      if (stack.length === 0) {
-        rootHeadings.push(heading);
-        stack.push(heading);
-      } else {
-        const parent = stack[stack.length - 1];
-        if (!parent.children) {
-          parent.children = [];
-        }
-        parent.children.push(heading);
-        stack.push(heading);
-      }
-    });
-
-    setHeadings(rootHeadings);
-  };
-
-  const scrollToHeading = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  };
 
   const editor = useEditor(
     {
@@ -178,84 +104,160 @@ const PostDetails: React.FC = () => {
   );
 
   useEffect(() => {
-    if (editor && post) {
-      const timer = setTimeout(() => {
-        extractHeadings();
-      }, 300);
-
-      return () => clearTimeout(timer);
-    }
+    const buildHtml = async () => {
+      if (!post || !editor) return;
+      try {
+        const htmlContent = editor.getHTML();
+        const processed = await rehype()
+          .use(rehypeSlug)
+          .use(rehypeToc, {
+            headings: ["h1", "h2", "h3", "h4"],
+            cssClasses: {
+              toc: "table-of-contents",
+              list: "toc-list",
+              listItem: "toc-item",
+              link: "toc-link",
+            },
+          })
+          .process(htmlContent);
+        const html = String(processed);
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const tocEl = doc.querySelector(".table-of-contents");
+        if (tocEl) {
+          setTocHtml(tocEl.outerHTML);
+          tocEl.remove();
+        } else {
+          setTocHtml("");
+        }
+        setContentHtml(doc.body.innerHTML);
+      } catch (e) {
+        console.error("Error generating TOC:", e);
+        setContentHtml(editor.getHTML());
+        setTocHtml("");
+      }
+    };
+    buildHtml();
   }, [editor, post]);
 
-  const RenderHeadingItems = ({ items }: { items: HeadingItem[] }) => {
-    return (
-      <ul className="m-0 list-none flex flex-col gap-2">
-        {items.map((heading) => (
-          <li key={heading.id}>
-            <a
-              href={`#${heading.id}`}
-              className={`inline-block no-underline transition-colors hover:text-foreground ${
-                heading.level === 1
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground"
-              }`}
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToHeading(heading.id);
-              }}
-            >
-              {heading.text}
-            </a>
-            {heading.children && heading.children.length > 0 && (
-              <ul className="m-0 list-none pl-4">
-                {heading.children.map((child) => (
-                  <li key={child.id}>
-                    <a
-                      href={`#${child.id}`}
-                      className={`inline-block no-underline transition-colors hover:text-foreground ${
-                        child.level <= 2
-                          ? "font-medium text-foreground"
-                          : "text-muted-foreground"
-                      }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToHeading(child.id);
-                      }}
-                    >
-                      {child.text}
-                    </a>
-                    {child.children && child.children.length > 0 && (
-                      <RenderHeadingItems items={child.children} />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  // No extra TOC behavior; keep previous layout. Render a mobile TOC below category.
+
+  const createdAtIso = post?.createdDate || post?.publishedAt || null;
+  const createdAtLabel = createdAtIso
+    ? (() => {
+        const d = new Date(createdAtIso);
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      })()
+    : undefined;
 
   return (
-    <div className="w-full h-full max-w-6xl mx-auto grid grid-cols-12 gap-4 p-2">
-      <div
-        className="col-span-12 lg:col-span-8 border-x border-dashed border-neutral-300 p-5"
-        ref={contentRef}
-      >
+    <div className="w-full h-full container mx-auto grid grid-cols-12 gap-4 p-2">
+      <div className="flex flex-col items-center col-span-12 xl:col-span-9 border-x border-dashed border-neutral-300 p-5">
         <Label
-          className="text-3xl font-semibold mb-3"
-          style={{ fontFamily: `"M PLUS Rounded 1c", sans-serif` }}
+          className="text-3xl font-extrabold mb-3 text-center"
+          style={{ fontFamily: `"M PLUS Rounded 2c", sans-serif` }}
         >
           {post?.title}
         </Label>
-        <EditorContent editor={editor} />
+        {post?.authorName ? (
+          <div className="blog-article-card-author-strip mb-4 flex flex-row flex-wrap items-center">
+            <div className="flex flex-col items-center leading-snug">
+              {post?.authorName ? (
+                <div className="blog-article-card-author-name mb-1 block text-lg font-bold text-slate-700 dark:text-slate-400">
+                  {post.authorName}
+                </div>
+              ) : null}
+              {typeof post?.views === "number" || createdAtLabel ? (
+                <div className="blog-article-card-article-meta flex flex-row text-sm">
+                  <p className="text-slate-500 dark:text-slate-400 flex flex-row items-center">
+                    {typeof post?.views === "number" ? (
+                      <span className="flex flex-row items-center">
+                        <svg
+                          className="mr-2 h-4 w-4 fill-current"
+                          viewBox="0 0 512 512"
+                          aria-hidden
+                        >
+                          <path d="M507.8 37.24c6 6.54 5.5 16.65-1 22.6l-176 159.96c-6.4 5.8-16.1 5.6-22.1-.5L190.4 100.1 25.41 220.9c-7.15 5.2-17.152 3.7-22.349-3.5-5.198-7.1-3.617-17.1 3.529-22.3L182.6 67.06c5.5-4.63 15.1-3.94 20.7 1.63L320.5 185.9 485.2 36.16c6.6-5.94 16.7-5.46 22.6 1.08zM112 368v64c0 26.5-21.49 48-48 48s-48-21.5-48-48v-64c0-26.5 21.49-48.9 48-48.9s48 22.4 48 48.9zm-32 64v-64c0-8.8-7.16-16-16-16s-16 7.2-16 16v64c0 8.8 7.16 16 16 16s16-7.2 16-16zm64-160.9c0-25.6 21.5-48 48-48s48 22.4 48 48V432c0 26.5-21.5 48-48 48s-48-21.5-48-48V271.1zm48-16c-8.8 0-16 8.1-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V271.1c0-7.9-7.2-16-16-16zM368 336v96c0 26.5-21.5 48-48 48s-48-21.5-48-48v-96c0-26.5 21.5-48.9 48-48.9s48 22.4 48 48.9zm-32 96v-96c0-8.8-7.2-16.9-16-16.9s-16 8.1-16 16.9v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm64-160.9c0-25.6 21.5-48 48-48s48 22.4 48 48V432c0 26.5-21.5 48-48 48s-48-21.5-48-48V271.1zm48-16c-8.8 0-16 8.1-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V271.1c0-7.9-7.2-16-16-16z" />
+                        </svg>
+                        <span>{post.views} views</span>
+                      </span>
+                    ) : null}
+                    {typeof post?.views === "number" && createdAtLabel ? (
+                      <span className="mx-2">•</span>
+                    ) : null}
+                    {createdAtLabel ? (
+                      <time dateTime={createdAtIso || undefined}>
+                        {createdAtLabel}
+                      </time>
+                    ) : null}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {post?.category?.name ? (
+          <div className="mb-5 block">
+            {post?.category?.id ? (
+              <Link
+                to={`/category/${post.category.id}`}
+                className="border transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 inline-flex items-center font-medium rounded-md text-xs px-2 py-1 bg-sky-100 dark:bg-primary-400 dark:bg-opacity-10 text-sky-600 dark:text-sky-300 ring-1 ring-inset ring-primary-500 dark:ring-primary-400 ring-opacity-25 dark:ring-opacity-25"
+              >
+                {post.category.name}
+              </Link>
+            ) : (
+              <span className="border inline-flex items-center font-medium rounded-md text-xs px-2 py-1 bg-sky-100 dark:bg-primary-400 dark:bg-opacity-10 text-sky-600 dark:text-sky-300 ring-1 ring-inset ring-primary-500 dark:ring-primary-400 ring-opacity-25 dark:ring-opacity-25">
+                {post.category.name}
+              </span>
+            )}
+          </div>
+        ) : null}
+        {/* Mobile TOC for <xl screens: collapsible */}
+        {tocHtml ? (
+          <div className="w-full xl:hidden mb-4">
+            <div className="mobile-toc">
+              <button
+                type="button"
+                className="mobile-toc-header"
+                aria-expanded={mobileTocOpen}
+                aria-controls="mobile-toc-content"
+                onClick={() => setMobileTocOpen((v) => !v)}
+              >
+                <span className="mobile-toc-title">On this page</span>
+                <span
+                  className={`mobile-toc-arrow ${mobileTocOpen ? "expanded" : ""}`}
+                  aria-hidden
+                />
+              </button>
+              <div
+                id="mobile-toc-content"
+                className={`mobile-toc-content ${mobileTocOpen ? "expanded" : "collapsed"}`}
+              >
+                <div
+                  className="mobile-toc-inner"
+                  dangerouslySetInnerHTML={{ __html: tocHtml }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+        <div
+          className="w-full"
+          dangerouslySetInnerHTML={{ __html: contentHtml }}
+        />
       </div>
-      <div className="col-span-4 hidden lg:block border-e border-dashed p-5">
+      <div className="col-span-3 hidden xl:block border-e border-dashed p-5">
         <div className="sticky top-20 space-y-2">
-          <p className="font-medium">On This Page</p>
-          {headings.length > 0 ? (
-            <RenderHeadingItems items={headings} />
+          <span className="font-bold text-xl m-2 text-neutral-500">On this page</span>
+          {tocHtml ? (
+            <div
+              className="w-full"
+              dangerouslySetInnerHTML={{ __html: tocHtml }}
+            />
           ) : (
             <p className="text-muted-foreground text-sm">
               No Table of Contents

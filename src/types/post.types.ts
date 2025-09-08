@@ -12,6 +12,7 @@ export interface Post {
   id: string;
   title: string;
   slug: string;
+  userId?: string; // backend provides userId in detail response
   authorName?: string;
   status: PostStatus;
   excerpt?: string | null;
@@ -19,6 +20,7 @@ export interface Post {
   likesCount?: number;
   publishedAt?: string | null;
   scheduledFor?: string | null;
+  categoryId?: string; // included alongside category in responses
   category: Category;
   contents: ContentBlock[];
   createdDate?: string;
