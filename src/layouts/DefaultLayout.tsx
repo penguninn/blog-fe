@@ -6,7 +6,7 @@ const DefaultLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 w-full mt-16 flex justify-center">
+      <main className="flex-1 w-full mt-5 flex justify-center">
         <Outlet />
       </main>
       <Footer />
