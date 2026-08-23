@@ -113,7 +113,7 @@ const Navbar = () => {
           <Logo />
         </div>
         {categories.length > 0 ? (
-          <div className="hidden lg:flex w-full gap-x-10 justify-start items-center my-2 mr-5">
+          <div className="hidden md:flex w-full gap-x-10 justify-start items-center my-2 mr-5">
             <Link
               to={`/`}
               className=" hover:text-pink-600 hover:underline transition-colors text-sm"
@@ -122,7 +122,7 @@ const Navbar = () => {
             </Link>
             <a
               className=" hover:text-pink-600 hover:underline transition-colors text-sm"
-              href="https://penguninn.com"
+              href="https://pengunin.me"
               target="_blank"
             >
               About
@@ -202,7 +202,7 @@ const Navbar = () => {
 
                 <DropdownMenuItem asChild>
                   <Link
-                    to="https://penguninn.com/"
+                    to="https://pengunin.me/"
                     target="_blank"
                     className="w-full flex justify-start"
                   >

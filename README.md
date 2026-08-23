@@ -1,6 +1,6 @@
 # Pengunin Blog
 
-> **Live Demo:** [blog.penguninn.com](https://blog.penguninn.com)  
+> **Live Demo:** [blog.pengunin.me](https://blog.pengunin.com)  
 > **Backend Repository:** [penguninn/blog-be](https://github.com/penguninn/blog-be)
 
 A modern, full-stack blog platform featuring a React TypeScript frontend with rich content creation capabilities, secure authentication, and a professional admin interface.

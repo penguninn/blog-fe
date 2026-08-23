@@ -49,7 +49,7 @@ const Footer = () => {
           ))}
           <a
             className="dark:text-stone-300 text-neutral-700 hover:text-pink-600 hover:underline transition-colors text-sm"
-            href="https://penguninn.com"
+            href="https://pengunin.me"
             target="_blank"
           >
             About
